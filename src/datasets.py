@@ -13,6 +13,8 @@ class DataSet:
         self.train = None
         self.val = None
         self.test = None
+        self.data_merged = None
+        self.data_unshuffled = None
         self.header = None
         self.header_test = None
 
@@ -34,6 +36,7 @@ class DataSet:
         except FileNotFoundError:
             df_test = None
 
+        self.data_unshuffled = df_train.to_numpy()
         if self.recombine_data:
             self.recombine(df_train)
 
@@ -46,6 +49,7 @@ class DataSet:
         train_len = int(data.shape[0]*self.recombine_data[0])
         self.train = data[:train_len, :]
         self.val = data[train_len:, :]
+        self.data_merged = data
         print(f'[INFO] Data:\ntrain: {self.train.shape[0]} points\nval: {self.val.shape[0]}\ntest: {self.test.shape[0]}')
         print(f'Header: {self.header}')
 
