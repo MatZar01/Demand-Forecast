@@ -30,9 +30,41 @@ monthly['13'] = np.where(monthly['13'] == 0, np.nan, monthly['13'])
 #%%
 import matplotlib.pyplot as plt
 mts = list(range(1, 13))
-plt.plot(mts, monthly['11'])
-plt.plot(mts, monthly['12'])
-plt.plot(mts, monthly['13'])
+plt.plot(mts, monthly['11'], label='yr 1')
+plt.plot(mts, monthly['12'], label='yr 2')
+plt.plot(mts, monthly['13'], label='yr3')
 plt.title('Monthly units sold')
+plt.legend()
+plt.grid()
+plt.show()
+#%%
+items = [x[3] for x in d_unsh]
+items = list(set(items))
+item_week = {}
+for item in items:
+    item_week[item] = np.zeros((3, 13, 32))
+
+for row in d_unsh:
+    year = int(row[1].split('/')[2]) - 11
+    item_week[row[3]][year][int(row[1].split('/')[1])][int(row[1].split('/')[0])] += row[-1]
+#%%
+for key in item_week.keys():
+    item_week[key] = np.sum(item_week[key], axis=2)[:, 1:]
+
+#%%
+fig, axs = plt.subplots(3, 1, constrained_layout=True, figsize=(7, 10))
+
+for key in item_week.keys():
+    axs[0].plot(mts, item_week[key][0, :])
+    axs[1].plot(mts, item_week[key][1, :])
+    axs[2].plot(mts, item_week[key][2, :])
+
+fig.suptitle('Monthly item sold')
+axs[0].set_title('yr 1')
+axs[1].set_title('yr 2')
+axs[2].set_title('yr 3')
+axs[0].set_yscale('log')
+axs[1].set_yscale('log')
+axs[2].set_yscale('log')
 plt.grid()
 plt.show()
