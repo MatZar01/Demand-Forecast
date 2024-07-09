@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+
 class DataSet:
     def __init__(self, paths, recombine_data: list = [0.7, 0.3], shuffle: bool = True, seed: int = 24):
         self.path_train = paths['TRAIN']
