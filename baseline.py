@@ -68,3 +68,16 @@ axs[1].set_yscale('log')
 axs[2].set_yscale('log')
 plt.grid()
 plt.show()
+#%%
+item_total = {}
+for item in items:
+    item_total[item] = 0
+for key in item_week.keys():
+    item_total[key] = np.sum(item_week[key])
+print(item_total)
+#%%
+x = [str(x) for x in list(item_total.keys())]
+y = list(item_total.values())
+plt.bar(x, y)
+plt.xticks(rotation=45)
+plt.show()
