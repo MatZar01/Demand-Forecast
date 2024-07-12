@@ -2,7 +2,7 @@ import numpy as np
 from src import get_args
 from src import DataSet
 
-CFG_FILE = 'cfgs/default.yml'
+CFG_FILE = '../cfgs/default.yml'
 task_info = get_args(CFG_FILE)
 Data_manager = DataSet(paths=task_info['DATA_PATH'], year_split=True)
 data_train = Data_manager.train_all
@@ -56,13 +56,15 @@ from statsmodels.tsa.arima.model import ARIMA
 from sklearn.metrics import mean_squared_error
 from pandas import DataFrame
 
-train_series = pd.DataFrame(train_single[:, 1].astype(float))
+train_series = pd.Series(train_single[:, 1].astype(float))
 train_series.index = pd.Index(pd.to_datetime(train_single[:, 0], dayfirst=True, format="mixed"))
+#train_series.index = train_series.index.to_period('M')
 val_series = pd.Series(val_single[:, 1].astype(float))
 val_series.index = pd.Index(pd.to_datetime(val_single[:, 0], dayfirst=True, format="mixed"))
+#val_series.index = val_series.index.to_period('M')
 
 #%%
-model = ARIMA(train_series, order=(5,4,3))#, trend='ct')
+model = ARIMA(train_series, order=(10,2,1))#, trend='ct')
 model_fit = model.fit()
 # summary of fit model
 print(model_fit.summary())
@@ -74,3 +76,27 @@ residuals.plot(kind='kde')
 plt.show()
 # summary stats of residuals
 print(residuals.describe())
+#%%
+# evaluation on val dataset
+from math import sqrt
+
+history = [x for x in train_series]
+predictions = list()
+# walk-forward validation
+for t in range(len(val_series)):
+    model = ARIMA(history, order=(2, 2, 1))
+    model_fit = model.fit()
+    output = model_fit.forecast()
+    yhat = output[0]
+    predictions.append(yhat)
+    obs = val_series[t]
+    history.append(obs)
+    print(f'predicted={yhat}, expected={obs}')
+
+# evaluate forecasts
+rmse = sqrt(mean_squared_error(val_series.values, predictions))
+print('Test RMSE: %.3f' % rmse)
+# plot forecasts against actual outcomes
+plt.plot(val_series.values)
+plt.plot(predictions, color='red')
+plt.show()

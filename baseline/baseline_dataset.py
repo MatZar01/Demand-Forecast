@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from src import get_args
 
-CFG_FILE = 'cfgs/default.yml'
+CFG_FILE = '../cfgs/default.yml'
 task_info = get_args(CFG_FILE)
 #%%
 from src import DataSet
