@@ -62,7 +62,7 @@ val_series = pd.Series(val_single[:, 1].astype(float))
 val_series.index = pd.Index(pd.to_datetime(val_single[:, 0], dayfirst=True, format="mixed"))
 
 #%%
-model = ARIMA(train_series, order=(5,1,0))
+model = ARIMA(train_series, order=(5,4,3))#, trend='ct')
 model_fit = model.fit()
 # summary of fit model
 print(model_fit.summary())
