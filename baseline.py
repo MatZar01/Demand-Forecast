@@ -81,3 +81,34 @@ y = list(item_total.values())
 plt.bar(x, y)
 plt.xticks(rotation=45)
 plt.show()
+#%%
+stores = [x[2] for x in d_unsh]
+stores = list(set(stores))
+store_week = {}
+for store in stores:
+    store_week[store] = np.zeros((3, 13, 32))
+
+for row in d_unsh:
+    year = int(row[1].split('/')[2]) - 11
+    store_week[row[2]][year][int(row[1].split('/')[1])][int(row[1].split('/')[0])] += row[-1]
+
+for key in store_week.keys():
+    store_week[key] = np.sum(store_week[key], axis=2)[:, 1:]
+#%%
+fig, axs = plt.subplots(3, 1, constrained_layout=True, figsize=(7, 10))
+
+for key in store_week.keys():
+    axs[0].plot(mts, store_week[key][0, :])
+    axs[1].plot(mts, store_week[key][1, :])
+    axs[2].plot(mts, store_week[key][2, :])
+
+fig.suptitle('Monthly item sold - store')
+axs[0].set_title('yr 1')
+axs[1].set_title('yr 2')
+axs[2].set_title('yr 3')
+axs[0].set_yscale('log')
+axs[1].set_yscale('log')
+axs[2].set_yscale('log')
+plt.grid()
+plt.show()
+#%%
