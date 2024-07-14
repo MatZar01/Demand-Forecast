@@ -1,103 +1,135 @@
 import numpy as np
 from src import get_args
 from src import DataSet
-
-CFG_FILE = './cfgs/default.yml'
-task_info = get_args(CFG_FILE)
-Data_manager = DataSet(paths=task_info['DATA_PATH'], year_split=True)
-data_train = Data_manager.train_all
-data_val = Data_manager.val
-#%%
-# get stores ids and sku ids
-stores = np.unique(data_train[:, 2])
-skus = np.unique(data_train[:, 3])
-# pick one pair for experiments
-store_id = stores[0]
-sku_id = skus[0]
-#%%
-# get all data from selected pair for training and validation
-store_match_train = data_train[np.where(data_train[:, 2] == store_id)[0]]
-train_single = store_match_train[np.where(store_match_train[:, 3] == sku_id)[0]]
-
-store_match_val = data_val[np.where(data_val[:, 2] == store_id)[0]]
-val_single = store_match_val[np.where(store_match_val[:, 3] == sku_id)[0]]
-
-# get only relevant data
-train_single = train_single[:, [1, -1]]
-val_single = val_single[:, [1, -1]]
-#%%
-# visualize single series
-import matplotlib.pyplot as plt
-plt.plot(train_single[:, 0], train_single[:, 1], label='train period')
-plt.plot(val_single[:, 0], val_single[:, 1], label='test period')
-plt.xticks(rotation=45, fontsize=5)
-plt.title(f'Store: {store_id}, sku: {sku_id}')
-plt.legend()
-plt.show()
-#%%
-# create autocorrelation plot and get lag_vals
-from pandas.plotting import autocorrelation_plot
 import pandas as pd
-
-train_series_lag = pd.Series(train_single[:, 1][:val_single.shape[0]].astype(float)) # this time lag cannot exceed val length
-
-autocorrs = [train_series_lag.autocorr(lag=x) for x in list(range(val_single.shape[0]-1))]
-autocors_lags = autocorrelation_plot(train_series_lag)
-lag_vals = plt.gca().lines[5].get_xydata()[:, 1]
-ac_99 = plt.gca().lines[0].get_xydata()[0][1]
-plt.title('Autocorrelation plot')
-plt.show()
-# get most suitable lag
-warmup = 2
-lag = np.argmin(np.abs(lag_vals[warmup:lag_vals.size-lag_vals.size//2] - ac_99)) + warmup
-# all in all, not that relevant step - lag will be grid searched 2-6
-#%%
-# initial ARIMA with no MA (MA = 0)
 from statsmodels.tsa.arima.model import ARIMA
 from sklearn.metrics import mean_squared_error
-from pandas import DataFrame
-
-train_series = pd.Series(train_single[:, 1].astype(float))
-train_series.index = pd.Index(pd.to_datetime(train_single[:, 0], dayfirst=True, format="mixed"))
-#train_series.index = train_series.index.to_period('M')
-val_series = pd.Series(val_single[:, 1].astype(float))
-val_series.index = pd.Index(pd.to_datetime(val_single[:, 0], dayfirst=True, format="mixed"))
-#val_series.index = val_series.index.to_period('M')
-
-#%%
-model = ARIMA(train_series, order=(10,2,1))#, trend='ct')
-model_fit = model.fit()
-# summary of fit model
-print(model_fit.summary())
-residuals = DataFrame(model_fit.resid)
-residuals.plot()
-plt.show()
-# density plot of residuals
-residuals.plot(kind='kde')
-plt.show()
-# summary stats of residuals
-print(residuals.describe())
-#%%
-# evaluation on val dataset
+import matplotlib.pyplot as plt
 from math import sqrt
+from datetime import datetime
+import pickle as pkl
+import warnings
 
-history = [x for x in train_series]
-predictions = []
-# walk-forward validation
-for t in range(len(val_series)):
-    model = ARIMA(history, order=(2, 2, 1))
-    model_fit = model.fit()
-    output = model_fit.forecast()
-    yhat = output[0]
-    predictions.append(yhat)
-    obs = val_series[t]
-    history.append(obs)
-    print(f'predicted={yhat}, expected={obs}')
 
-# evaluate forecasts
-rmse = sqrt(mean_squared_error(val_series.values, predictions))
-print(f'Test RMSE: {rmse}')
-# plot forecasts against actual outcomes
-plt.plot(val_series.values)
-plt.plot(predictions, color='red')
-plt.show()
+def get_timestamp():
+    now = datetime.now()
+    return f'{now.year}-{now.month}-{now.day}-{now.hour}:{now.minute}:{now.second}'
+
+
+def get_store_sku_match(data_manager):
+    data_train = data_manager.train_all
+    data_val = data_manager.val
+    # get stores ids and sku ids
+    stores = np.unique(data_train[:, 2])
+    skus = np.unique(data_train[:, 3])
+    # get cartesian product for store-sku
+    c_prod = np.transpose([np.tile(stores, len(skus)), np.repeat(skus, len(stores))])
+    # pick one pair for experiments
+    return c_prod
+
+
+def get_data(data_manager, ids: list):
+    store_id = ids[0]
+    sku_id = ids[1]
+    data_train = data_manager.train_all
+    data_val = data_manager.val
+    # get all data from selected pair for training and validation
+    store_match_train = data_train[np.where(data_train[:, 2] == store_id)[0]]
+    train_single = store_match_train[np.where(store_match_train[:, 3] == sku_id)[0]]
+
+    store_match_val = data_val[np.where(data_val[:, 2] == store_id)[0]]
+    val_single = store_match_val[np.where(store_match_val[:, 3] == sku_id)[0]]
+
+    # get only relevant data
+    train_single = train_single[:, [1, -1]]
+    val_single = val_single[:, [1, -1]]
+    return train_single, val_single
+
+
+def get_data_series(train_single, val_single):
+    train_series = pd.Series(train_single[:, 1].astype(float))
+    train_series.index = pd.Index(pd.to_datetime(train_single[:, 0], dayfirst=True, format="mixed"))
+    # train_series.index = train_series.index.to_period('M')
+    val_series = pd.Series(val_single[:, 1].astype(float))
+    val_series.index = pd.Index(pd.to_datetime(val_single[:, 0], dayfirst=True, format="mixed"))
+    return train_series, val_series
+
+
+def get_param_range(p_range, d_range, q_range):
+    p_s = list(range(0, p_range, 2))
+    d_s = list(range(0, d_range))
+    q_s = list(range(0, q_range))
+    return np.array(np.meshgrid(p_s, d_s, q_s)).T.reshape(-1, 3)
+
+
+def train_model(train_series, val_series, order):
+    history = [x for x in train_series]
+    predictions = []
+    # walk-forward validation
+    try:  # for incompatible parameters
+        for t in range(len(val_series)):
+            model = ARIMA(history, order=order)
+            model_fit = model.fit()
+            output = model_fit.forecast()
+            pred = output[0]
+            predictions.append(pred)
+            history.append(val_series.values[t])
+    except:
+        return np.inf, None, None
+
+    rmse = sqrt(mean_squared_error(val_series.values, predictions))
+    return rmse, predictions, val_series.values
+
+
+def grid_search_models(train_series, val_series, param_grid):
+    best_rmse = np.inf
+    best_results = None
+    best_params = None
+    for order in param_grid:
+        model_results = train_model(train_series, val_series, order)
+        if model_results[0] < best_rmse:
+            best_rmse = model_results[0]
+            best_results = model_results
+            best_params = {'p': order[0], 'd': order[1], 'q': order[2]}
+
+    print(f'[INFO] training complete, RMSE: {best_rmse}')
+    return {'model': best_params, 'rmse': best_results[0], 'preds': best_results[1], 'gt': best_results[2]}
+
+
+def save_results(save_dir, result_dict):
+    ts = get_timestamp()
+    pkl.dump(result_dict, open(f'{save_dir}/ARIMA_{ts}.pkl', 'wb'))
+    print('[INFO] results saved')
+
+
+if __name__ == '__main__':
+    warnings.filterwarnings('ignore')
+
+    CFG_FILE = '../cfgs/default.yml'
+    SAVE_DIR = './results'
+    task_info = get_args(CFG_FILE)
+    Data_manager = DataSet(paths=task_info['DATA_PATH'], year_split=True)
+
+    # get store-sku matches
+    c_prod = get_store_sku_match(Data_manager)
+
+    # select range of model parameters
+    p_range = 12
+    d_range = 4
+    q_range = 4
+    param_grid = get_param_range(p_range, d_range, q_range)
+
+    # perform full training
+    result_dict = {}
+    counter = 0
+    for match in c_prod:
+        train_single, val_single = get_data(Data_manager, match)
+        train_series, val_series = get_data_series(train_single, val_single)
+        best_model_res = grid_search_models(train_series, val_series, param_grid)
+        result_dict[f'{match[0]}_{match[1]}'] = best_model_res
+        counter += 1
+        print(f'[INFO] {counter}/{c_prod.shape[0]} matches done')
+
+    # save results
+    save_results(SAVE_DIR, result_dict)
+    print('[INFO] DONE')
