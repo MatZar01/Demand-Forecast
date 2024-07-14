@@ -9,6 +9,7 @@ from math import sqrt
 from datetime import datetime
 import pickle as pkl
 import warnings
+from tqdm import tqdm
 
 
 def get_timestamp():
@@ -62,7 +63,7 @@ def get_param_range(p_range, d_range, q_range):
     return np.array(np.meshgrid(p_s, d_s, q_s)).T.reshape(-1, 3)
 
 
-def train_model(train_series, val_series, order):
+def train_model(train_series, val_series, order, p_bar):
     history = [x for x in train_series]
     predictions = []
     # walk-forward validation
@@ -74,19 +75,22 @@ def train_model(train_series, val_series, order):
             pred = output[0]
             predictions.append(pred)
             history.append(val_series.values[t])
+
+        rmse = sqrt(mean_squared_error(val_series.values, predictions))
+        p_bar.update(1)
+        return rmse, predictions, val_series.values
+
     except:
-        return np.inf, None, None
-
-    rmse = sqrt(mean_squared_error(val_series.values, predictions))
-    return rmse, predictions, val_series.values
+        p_bar.update(1)
+        return np.nan, predictions, val_series.values
 
 
-def grid_search_models(train_series, val_series, param_grid):
+def grid_search_models(train_series, val_series, param_grid, p_bar):
     best_rmse = np.inf
-    best_results = None
+    best_results = [None, None, None]
     best_params = None
     for order in param_grid:
-        model_results = train_model(train_series, val_series, order)
+        model_results = train_model(train_series, val_series, order, p_bar)
         if model_results[0] < best_rmse:
             best_rmse = model_results[0]
             best_results = model_results
@@ -112,23 +116,24 @@ if __name__ == '__main__':
 
     # get store-sku matches
     c_prod = get_store_sku_match(Data_manager)
+    print(f'[INFO] {c_prod.shape[0]} matches found')
 
     # select range of model parameters
-    p_range = 12
-    d_range = 4
-    q_range = 4
+    p_range = 6
+    d_range = 3
+    q_range = 3
     param_grid = get_param_range(p_range, d_range, q_range)
+
+    # setup progress bar
+    p_bar = tqdm(range(c_prod.shape[0]*param_grid.shape[0]))
 
     # perform full training
     result_dict = {}
-    counter = 0
     for match in c_prod:
         train_single, val_single = get_data(Data_manager, match)
         train_series, val_series = get_data_series(train_single, val_single)
-        best_model_res = grid_search_models(train_series, val_series, param_grid)
+        best_model_res = grid_search_models(train_series, val_series, param_grid, p_bar)
         result_dict[f'{match[0]}_{match[1]}'] = best_model_res
-        counter += 1
-        print(f'[INFO] {counter}/{c_prod.shape[0]} matches done')
 
     # save results
     save_results(SAVE_DIR, result_dict)
