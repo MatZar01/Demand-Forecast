@@ -2,7 +2,7 @@ import numpy as np
 from src import get_args
 from src import DataSet
 
-CFG_FILE = '../cfgs/default.yml'
+CFG_FILE = './cfgs/default.yml'
 task_info = get_args(CFG_FILE)
 Data_manager = DataSet(paths=task_info['DATA_PATH'], year_split=True)
 data_train = Data_manager.train_all
@@ -50,6 +50,7 @@ plt.show()
 # get most suitable lag
 warmup = 2
 lag = np.argmin(np.abs(lag_vals[warmup:lag_vals.size-lag_vals.size//2] - ac_99)) + warmup
+# all in all, not that relevant step - lag will be grid searched 2-6
 #%%
 # initial ARIMA with no MA (MA = 0)
 from statsmodels.tsa.arima.model import ARIMA
@@ -81,7 +82,7 @@ print(residuals.describe())
 from math import sqrt
 
 history = [x for x in train_series]
-predictions = list()
+predictions = []
 # walk-forward validation
 for t in range(len(val_series)):
     model = ARIMA(history, order=(2, 2, 1))
@@ -95,7 +96,7 @@ for t in range(len(val_series)):
 
 # evaluate forecasts
 rmse = sqrt(mean_squared_error(val_series.values, predictions))
-print('Test RMSE: %.3f' % rmse)
+print(f'Test RMSE: {rmse}')
 # plot forecasts against actual outcomes
 plt.plot(val_series.values)
 plt.plot(predictions, color='red')
