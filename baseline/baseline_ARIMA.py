@@ -76,13 +76,13 @@ def train_model(train_series, val_series, order, p_bar):
             predictions.append(pred)
             history.append(val_series.values[t])
 
-        rmse = sqrt(mean_squared_error(val_series.values, predictions))
+        rmse = sqrt(mean_squared_error(val_series.values[:len(predictions)], predictions))  # [:len(predictions)] for fail during forecasting
         p_bar.update(1)
-        return rmse, predictions, val_series.values
+        return rmse, predictions, val_series.values[:len(predictions)]
 
     except:
         p_bar.update(1)
-        return np.nan, predictions, val_series.values
+        return np.nan, None, None
 
 
 def grid_search_models(train_series, val_series, param_grid, p_bar):
@@ -95,6 +95,10 @@ def grid_search_models(train_series, val_series, param_grid, p_bar):
             best_rmse = model_results[0]
             best_results = model_results
             best_params = {'p': order[0], 'd': order[1], 'q': order[2]}
+
+    if best_rmse == np.inf:
+        print('[INFO -- WARN] training failed')
+        best_results = [np.nan, None, val_series.values]
 
     print(f'[INFO] training complete, RMSE: {best_rmse}')
     return {'model': best_params, 'rmse': best_results[0], 'preds': best_results[1], 'gt': best_results[2]}
