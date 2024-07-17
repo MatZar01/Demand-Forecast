@@ -133,7 +133,7 @@ if __name__ == '__main__':
     param_grid = get_param_range(p_range, d_range, q_range)
 
     # setup progress bar
-    p_bar = tqdm(range(c_prod.shape[0]*param_grid.shape[0]))
+    p_bar = tqdm(range(c_prod.shape[0]*param_grid.shape[0]))  # total 57456 models
 
     # perform full training
     result_dict = {}
