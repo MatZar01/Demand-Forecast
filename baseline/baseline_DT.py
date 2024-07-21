@@ -93,7 +93,9 @@ def train_dt(X_t, y_t, X_v, y_v, args):
     return tree, {'rmse_train': rmse_train, 'rmse_val': rmse_val, 'train': [y_t, preds_train], 'val': [y_v, preds_val]}
 
 
-def prune_dt(X_t, y_t, X_v, y_v, tree):
+def prune_dt(tree, data):
+    X_t, y_t, d_t = data[0]
+    X_v, y_v, d_v = data[1]
     alphas = tree.cost_complexity_pruning_path(X_t, y_t).ccp_alphas
     out = {}
     lowest_rmse_val = np.inf
@@ -114,26 +116,39 @@ def prune_dt(X_t, y_t, X_v, y_v, tree):
         return best_reg, out
 
 
-def param_search_tree(train_x_lag, train_y_lag, val_x_lag, val_y_lag, params):
+def param_search_tree(params):
     best_rmse = np.inf
     out = {}
     best_tree = None
+    best_data = None
     for param in params:
         args_tree = {'LAG': param[0], 'DEPTH': param[1], 'DIFF': False}
+
+        train_x_lag, train_y_lag, diff_train_start = get_lagged_data(train_single_X, train_single_y, args_tree['LAG'],
+                                                                     False)
+        val_x_lag, val_y_lag, diff_val_start = get_lagged_data(val_single_X, val_single_y, args_tree['LAG'], False)
+
         tree, out_tree = train_dt(train_x_lag, train_y_lag, val_x_lag, val_y_lag, args_tree)
         if out_tree['rmse_val'] < best_rmse:
             best_rmse = out_tree['rmse_val']
             out = out_tree
             best_tree = tree
-    return best_tree, out
+            best_data = [train_x_lag, train_y_lag, diff_train_start], [val_x_lag, val_y_lag, diff_val_start]
+
+    return best_tree, out, best_data
 
 
-def param_search_forest(train_x_lag, train_y_lag, val_x_lag, val_y_lag, params):
+def param_search_forest(params):
     best_rmse = np.inf
     out = {}
     best_forest = None
     for param in params:
         args_forest = {'LAG': param[0], 'N_EST': param[1], 'MAX_LEAF': param[2], 'DIFF': False}
+
+        train_x_lag, train_y_lag, diff_train_start = get_lagged_data(train_single_X, train_single_y, args_forest['LAG'],
+                                                                     False)
+        val_x_lag, val_y_lag, diff_val_start = get_lagged_data(val_single_X, val_single_y, args_forest['LAG'], False)
+
         forest, out_forest = train_forest(train_x_lag, train_y_lag, val_x_lag, val_y_lag, args_forest)
         if out_forest['rmse_val'] < best_rmse:
             best_rmse = out_forest['rmse_val']
@@ -193,15 +208,12 @@ if __name__ == '__main__':
     out_dict_pruned = {}
     out_dict_forest = {}
 
-    args_tree = {'LAG': 8, 'DEPTH': 9, 'DIFF': False}
-    args_forest = {'LAG': 8, 'N_EST': 1000, 'MAX_LEAF': 25, 'DIFF': False}
-
     # get store-sku matches
     c_prod = get_store_sku_match(Data_manager)
     print(f'[INFO] {c_prod.shape[0]} matches found')
 
     p_bar = tqdm(range(c_prod.shape[0]))
-    c_prod = c_prod[:10, :]
+    c_prod = c_prod[:22, :]
     for match in c_prod:
         train_single_X, train_single_y, val_single_X, val_single_y = get_data(Data_manager, match)
 
@@ -209,18 +221,14 @@ if __name__ == '__main__':
             add_none([out_dict_tree, out_dict_pruned, out_dict_forest], match)
             continue
 
-        train_x_lag, train_y_lag, diff_train_start = get_lagged_data(train_single_X, train_single_y, args_tree['LAG'], args_tree['DIFF'])
-        val_x_lag, val_y_lag, diff_val_start = get_lagged_data(val_single_X, val_single_y, args_tree['LAG'], args_tree['DIFF'])
-
         # train DT
-        diffs = [diff_train_start, diff_val_start]
-        tree, out = param_search_tree(train_x_lag, train_y_lag, val_x_lag, val_y_lag, grid_tree)
+        tree, out, data = param_search_tree(grid_tree)
 
         # prune DT
-        tree_pruned, out_pruned = prune_dt(train_x_lag, train_y_lag, val_x_lag, val_y_lag, tree)
+        tree_pruned, out_pruned = prune_dt(tree, data)
 
         # random forests
-        forest, out_forest = param_search_forest(train_x_lag, train_y_lag, val_x_lag, val_y_lag, grid_forest)
+        forest, out_forest = param_search_forest(grid_forest)
 
         out_dict_tree[f'{match[0]}_{match[1]}'] = out
         out_dict_pruned[f'{match[0]}_{match[1]}'] = out_pruned
