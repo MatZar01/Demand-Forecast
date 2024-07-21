@@ -126,19 +126,17 @@ def get_diff_preds(pred_list, diff_start):
     return [gt, preds]
 
 
-def get_param_range(p_range, d_range, q_range):
-    p_s = list(range(0, p_range, 2))
-    d_s = list(range(0, d_range))
-    q_s = list(range(0, q_range))
-    return np.array(np.meshgrid(p_s, d_s, q_s)).T.reshape(-1, 3)
-
-
 def show_plots(vals, title):
     plt.plot(vals[0], label='GT')
     plt.plot(vals[1], label='preds')
     plt.title(f'{title}')
     plt.legend()
     plt.show()
+
+
+def save_result(res_dict, name, save_dir):
+    ts = get_timestamp()
+    pkl.dump(res_dict, open(f'{save_dir}/{name}_{ts}.pkl', 'wb'))
 
 
 if __name__ == '__main__':
@@ -153,6 +151,7 @@ if __name__ == '__main__':
     # set parameter grid
     lags = list(range(4, 12, 2))
     depths = list(range(4, 12, 2))
+    grid = np.array(np.meshgrid(lags, depths)).T.reshape(-1, 2)
 
     args = {'LAG': 8, 'DEPTH': 4, 'N_EST': 200, 'MAX_LEAF': 15, 'DIFF': False}
 

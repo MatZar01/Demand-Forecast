@@ -114,6 +114,34 @@ def prune_dt(X_t, y_t, X_v, y_v, tree):
         return best_reg, out
 
 
+def param_search_tree(train_x_lag, train_y_lag, val_x_lag, val_y_lag, params):
+    best_rmse = np.inf
+    out = {}
+    best_tree = None
+    for param in params:
+        args_tree = {'LAG': param[0], 'DEPTH': param[1], 'DIFF': False}
+        tree, out_tree = train_dt(train_x_lag, train_y_lag, val_x_lag, val_y_lag, args_tree)
+        if out_tree['rmse_val'] < best_rmse:
+            best_rmse = out_tree['rmse_val']
+            out = out_tree
+            best_tree = tree
+    return best_tree, out
+
+
+def param_search_forest(train_x_lag, train_y_lag, val_x_lag, val_y_lag, params):
+    best_rmse = np.inf
+    out = {}
+    best_forest = None
+    for param in params:
+        args_forest = {'LAG': param[0], 'N_EST': param[1], 'MAX_LEAF': param[2], 'DIFF': False}
+        forest, out_forest = train_forest(train_x_lag, train_y_lag, val_x_lag, val_y_lag, args_forest)
+        if out_forest['rmse_val'] < best_rmse:
+            best_rmse = out_forest['rmse_val']
+            out = out_forest
+            best_forest = forest
+    return best_forest, out
+
+
 def get_diff_preds(pred_list, diff_start):
     gt = pred_list[0].reshape(pred_list[0].shape[0]).astype(float)
     preds = pred_list[1]
@@ -125,19 +153,22 @@ def get_diff_preds(pred_list, diff_start):
     return [gt, preds]
 
 
-def get_param_range(p_range, d_range, q_range):
-    p_s = list(range(0, p_range, 2))
-    d_s = list(range(0, d_range))
-    q_s = list(range(0, q_range))
-    return np.array(np.meshgrid(p_s, d_s, q_s)).T.reshape(-1, 3)
-
-
 def show_plots(vals, title):
     plt.plot(vals[0], label='GT')
     plt.plot(vals[1], label='preds')
     plt.title(f'{title}')
     plt.legend()
     plt.show()
+
+
+def add_none(out_dicts, match):
+    for out_dict in out_dicts:
+        out_dict[f'{match[0]}_{match[1]}'] = {'rmse_train': np.nan, 'rmse_val': np.nan, 'train': [np.nan, np.nan], 'val': [np.nan, np.nan]}
+
+
+def save_result(res_dict, name, save_dir):
+    ts = get_timestamp()
+    pkl.dump(res_dict, open(f'{save_dir}/{name}_{ts}.pkl', 'wb'))
 
 
 if __name__ == '__main__':
@@ -155,32 +186,56 @@ if __name__ == '__main__':
     ests = [100, 150, 200, 250]
     leafs = [10, 15, 20]
 
+    grid_tree = np.array(np.meshgrid(lags, depths)).T.reshape(-1, 2)
+    grid_forest = np.array(np.meshgrid(lags, ests, leafs)).T.reshape(-1, 3)
 
-    args = {'LAG': 8, 'DEPTH': 9, 'N_EST': 1000, 'MAX_LEAF': 25, 'DIFF': False}
+    out_dict_tree = {}
+    out_dict_pruned = {}
+    out_dict_forest = {}
+
+    args_tree = {'LAG': 8, 'DEPTH': 9, 'DIFF': False}
+    args_forest = {'LAG': 8, 'N_EST': 1000, 'MAX_LEAF': 25, 'DIFF': False}
 
     # get store-sku matches
     c_prod = get_store_sku_match(Data_manager)
     print(f'[INFO] {c_prod.shape[0]} matches found')
 
-    match = c_prod[0]
-    train_single_X, train_single_y, val_single_X, val_single_y = get_data(Data_manager, match)
-    train_x_lag, train_y_lag, diff_train_start = get_lagged_data(train_single_X, train_single_y, args['LAG'], args['DIFF'])
-    val_x_lag, val_y_lag, diff_val_start = get_lagged_data(val_single_X, val_single_y, args['LAG'], args['DIFF'])
+    p_bar = tqdm(range(c_prod.shape[0]))
+    c_prod = c_prod[:10, :]
+    for match in c_prod:
+        train_single_X, train_single_y, val_single_X, val_single_y = get_data(Data_manager, match)
 
-    # train DT
-    diffs = [diff_train_start, diff_val_start]
-    tree, out = train_dt(train_x_lag, train_y_lag, val_x_lag, val_y_lag, args=args)
+        if train_single_X.shape[0] == 0:
+            add_none([out_dict_tree, out_dict_pruned, out_dict_forest], match)
+            continue
 
-    # prune DT
-    tree_pruned, out_pruned = prune_dt(train_x_lag, train_y_lag, val_x_lag, val_y_lag, tree)
+        train_x_lag, train_y_lag, diff_train_start = get_lagged_data(train_single_X, train_single_y, args_tree['LAG'], args_tree['DIFF'])
+        val_x_lag, val_y_lag, diff_val_start = get_lagged_data(val_single_X, val_single_y, args_tree['LAG'], args_tree['DIFF'])
 
-    # random forests
-    forest, out_forest = train_forest(train_x_lag, train_y_lag, val_x_lag, val_y_lag, args)
+        # train DT
+        diffs = [diff_train_start, diff_val_start]
+        tree, out = param_search_tree(train_x_lag, train_y_lag, val_x_lag, val_y_lag, grid_tree)
 
-    if args['DIFF']:
+        # prune DT
+        tree_pruned, out_pruned = prune_dt(train_x_lag, train_y_lag, val_x_lag, val_y_lag, tree)
+
+        # random forests
+        forest, out_forest = param_search_forest(train_x_lag, train_y_lag, val_x_lag, val_y_lag, grid_forest)
+
+        out_dict_tree[f'{match[0]}_{match[1]}'] = out
+        out_dict_pruned[f'{match[0]}_{match[1]}'] = out_pruned
+        out_dict_forest[f'{match[0]}_{match[1]}'] = out_forest
+
+        p_bar.update(1)
+
+    save_result(out_dict_tree, 'DT', SAVE_DIR)
+    save_result(out_dict_pruned, 'PRUNED', SAVE_DIR)
+    save_result(out_dict_forest, 'FOREST', SAVE_DIR)
+
+    '''if args_tree['DIFF']:
         # data no diff
-        tx, ty, td = get_lagged_data(train_single_X, train_single_y, args['LAG'], args['DIFF'])
-        vx, xy, vd = get_lagged_data(val_single_X, val_single_y, args['LAG'], args['DIFF'])
+        tx, ty, td = get_lagged_data(train_single_X, train_single_y, args_tree['LAG'], args_tree['DIFF'])
+        vx, xy, vd = get_lagged_data(val_single_X, val_single_y, args_tree['LAG'], args_tree['DIFF'])
         initial_preds = get_diff_preds(out['val'], vd)
         pruned_preds = get_diff_preds(out_pruned['val'], vd)
         forest_preds = get_diff_preds(out_forest['val'], vd)
@@ -197,5 +252,5 @@ if __name__ == '__main__':
     print(f'Initial tree RMSE:\nTrain: {out["rmse_train"]}\nVal: {out["rmse_val"]}\n'
           f'Pruned tree RMSE:\nTrain: {out_pruned["rmse_train"]}\nVal: {out_pruned["rmse_val"]}')
 
-    print(f'Random Forest RMSE:\nTrain: {out_forest["rmse_train"]}\nVal: {out_forest["rmse_val"]}')
+    print(f'Random Forest RMSE:\nTrain: {out_forest["rmse_train"]}\nVal: {out_forest["rmse_val"]}')'''
 
