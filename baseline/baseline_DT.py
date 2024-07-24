@@ -10,6 +10,7 @@ from datetime import datetime
 import pickle as pkl
 import warnings
 from tqdm import tqdm
+import pandas as pd
 
 
 def get_timestamp():
@@ -213,12 +214,17 @@ if __name__ == '__main__':
     print(f'[INFO] {c_prod.shape[0]} matches found')
 
     p_bar = tqdm(range(c_prod.shape[0]))
-    c_prod = c_prod[:22, :]
+
     for match in c_prod:
         train_single_X, train_single_y, val_single_X, val_single_y = get_data(Data_manager, match)
 
         if train_single_X.shape[0] == 0:
             add_none([out_dict_tree, out_dict_pruned, out_dict_forest], match)
+            p_bar.update(1)
+            continue
+        if np.count_nonzero(pd.isna(train_single_X)) > 0 or np.count_nonzero(pd.isna(val_single_X)) > 0:
+            add_none([out_dict_tree, out_dict_pruned, out_dict_forest], match)
+            p_bar.update(1)
             continue
 
         # train DT
