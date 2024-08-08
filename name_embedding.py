@@ -25,7 +25,7 @@ WEIGHT_DECAY = 0.004
 DEVICE = 'cuda'
 EPOCHS = 10
 BATCH = 8
-COL = 2
+COL = 3
 
 data_train = Embedding_dataset(DATA_PATH, COL, True)
 data_val = Embedding_dataset(DATA_PATH, COL, False, label_encoder=data_train.label_encoder)
@@ -54,3 +54,13 @@ lightning_trainer = L.Trainer(accelerator=DEVICE, max_epochs=EPOCHS, limit_train
 lightning_trainer.fit(model=light_model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
 print('[INFO] DONE')
 #%%
+x, lbl = next(iter(train_dataloader))
+model = torch.load('/home/mateusz/Desktop/Demand-Forecast/embedding_models/model_c3.pth')
+embedder = torch.load('/home/mateusz/Desktop/Demand-Forecast/embedding_models/embedder_c3.pth')
+
+model_out = model(x)
+embedder_out = embedder(x)
+
+print(model_out)
+print(embedder_out)
+
