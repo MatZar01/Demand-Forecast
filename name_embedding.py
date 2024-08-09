@@ -27,7 +27,7 @@ EPOCHS = 10
 BATCH = 8
 COL = 3
 
-data_train = Embedding_dataset(DATA_PATH, COL, True)
+data_train = Embedding_dataset(DATA_PATH, COL, True, out_path=OUT_PATH)
 data_val = Embedding_dataset(DATA_PATH, COL, False, label_encoder=data_train.label_encoder)
 
 train_dataloader = DataLoader(data_train, batch_size=BATCH, shuffle=True, num_workers=2, persistent_workers=True)
@@ -80,4 +80,34 @@ embedder_out = embedder(x)
 
 print(model_out)
 print(embedder_out)
+#%%
+import torch
+import numpy as np
+import pickle
+from sklearn.metrics.pairwise import cosine_similarity
+import seaborn as sns
+import matplotlib.pyplot as plt
 
+COL = 3
+
+onehot_embedder = pickle.load(open(f'/Users/pro/Desktop/Demand-Forecast/embedding_models/onehot_C{COL}.pkl', 'rb'))
+categories = onehot_embedder.categories_
+onehots = onehot_embedder.transform(np.array(categories).T).toarray()
+embedder_inputs = torch.LongTensor(np.argmax(onehots, axis=1))
+
+embedder = torch.load(f'/Users/pro/Desktop/Demand-Forecast/embedding_models/embedder_c{COL}.pth')
+
+out_embeddings = embedder(embedder_inputs).detach().numpy()
+similarities = cosine_similarity(out_embeddings)
+similarities = np.where(np.eye(similarities.shape[0]) == 1, np.nan, similarities)
+
+# get most similar items
+most_similar = np.argwhere(similarities == np.nanmax(similarities))[0]
+# get the least similar item to first of best from most similar pair
+least_similar = np.argwhere(similarities[:, most_similar[0]] == np.nanmin(similarities[:, most_similar[0]]))[0]
+min_max_sim_cat = np.array(categories).flatten()[np.concatenate([most_similar, least_similar])]
+
+
+"""sns.heatmap(similarities)
+plt.show()"""
+#%%

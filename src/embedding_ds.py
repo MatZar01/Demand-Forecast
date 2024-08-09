@@ -3,16 +3,18 @@ from torch.utils.data import Dataset
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder
 import torch
+import pickle
 
 
 class Embedding_dataset(Dataset):
-    def __init__(self, path, column, train: bool = True, label_encoder = None):
+    def __init__(self, path, column, train: bool = True, label_encoder = None, out_path: str = None):
         self.train = train
         self.column = column
         self.path = path
         self.name = path.split('/')[-1].split('.')[0]
         self.data_all = None
         self.label_encoder = label_encoder
+        self.out_path = out_path
 
         self.X = None
         self.labels = None
@@ -51,6 +53,10 @@ class Embedding_dataset(Dataset):
         if self.label_encoder is None:
             self.label_encoder = OneHotEncoder()
             self.label_encoder.fit(X_tensor.reshape(-1, 1))
+
+            if self.out_path is not None:
+                pickle.dump(self.label_encoder, open(f'{self.out_path}/onehot_C{self.column}.pkl', 'wb'))
+
         return self.label_encoder.transform(X_tensor.reshape(-1, 1)).toarray().astype(int)
 
     def __len__(self):
