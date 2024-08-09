@@ -22,7 +22,7 @@ OUT_PATH = 'embedding_models'
 EMBEDDING_DIM = 5
 LR = 0.001
 WEIGHT_DECAY = 0.004
-DEVICE = 'cuda'
+DEVICE = 'cpu'
 EPOCHS = 10
 BATCH = 8
 COL = 3
@@ -30,11 +30,11 @@ COL = 3
 data_train = Embedding_dataset(DATA_PATH, COL, True)
 data_val = Embedding_dataset(DATA_PATH, COL, False, label_encoder=data_train.label_encoder)
 
-train_dataloader = DataLoader(data_train, batch_size=BATCH, shuffle=True, num_workers=15)
-val_dataloader = DataLoader(data_val, batch_size=BATCH, shuffle=False, num_workers=15)
+train_dataloader = DataLoader(data_train, batch_size=BATCH, shuffle=True, num_workers=2, persistent_workers=True)
+val_dataloader = DataLoader(data_val, batch_size=BATCH, shuffle=False, num_workers=2, persistent_workers=True)
 
 # get model
-model = Embedder(data_train.data_shape, EMBEDDING_DIM).to(DEVICE)
+model = Embedder(data_train.data_shape, EMBEDDING_DIM)
 
 # set loss
 #loss = torch.nn.MSELoss()
@@ -54,9 +54,26 @@ lightning_trainer = L.Trainer(accelerator=DEVICE, max_epochs=EPOCHS, limit_train
 lightning_trainer.fit(model=light_model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
 print('[INFO] DONE')
 #%%
+import torch
+from src import Embedding_dataset
+from src import Embedder
+from src import L_Net
+from torch.utils.data import DataLoader
+
+DATA_PATH = 'DS/demand-forecasting/train.csv'
+DEVICE = 'cpu'
+COL = 3
+BATCH = 8
+
+data_train = Embedding_dataset(DATA_PATH, COL, True)
+data_val = Embedding_dataset(DATA_PATH, COL, False, label_encoder=data_train.label_encoder)
+
+train_dataloader = DataLoader(data_train, batch_size=BATCH, shuffle=True, num_workers=2, persistent_workers=True)
+val_dataloader = DataLoader(data_val, batch_size=BATCH, shuffle=False, num_workers=2, persistent_workers=True)
+
 x, lbl = next(iter(train_dataloader))
-model = torch.load('/home/mateusz/Desktop/Demand-Forecast/embedding_models/model_c3.pth')
-embedder = torch.load('/home/mateusz/Desktop/Demand-Forecast/embedding_models/embedder_c3.pth')
+model = torch.load('/Users/pro/Desktop/Demand-Forecast/embedding_models/model_c3.pth')
+embedder = torch.load('/Users/pro/Desktop/Demand-Forecast/embedding_models/embedder_c3.pth')
 
 model_out = model(x)
 embedder_out = embedder(x)
