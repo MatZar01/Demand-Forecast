@@ -120,7 +120,7 @@ for i in range(len(similar_skus)):
     stores_counts[similar_stores[i]] = {}
     stores_counts[similar_stores[i]]['count'] = counts[np.where(stores == similar_stores[i])]
     stores_counts[similar_stores[i]]['week'] = weeks[np.where(stores == similar_stores[i])]
-#%%
+
 print(f'SKUS: \nsimilar 1 count = {np.sum(skus_counts[similar_skus[0]]["count"])}'
       f'\nsimilar 2 count = {np.sum(skus_counts[similar_skus[1]]["count"])}'
       f'\ndissimilar 1 count = {np.sum(skus_counts[similar_skus[2]]["count"])}'
@@ -132,7 +132,7 @@ print(f'STORES: \nsimilar 1 count = {np.sum(stores_counts[similar_stores[0]]["co
       f'\ndissimilar 2 count = {np.sum(stores_counts[similar_stores[3]]["count"])}')
 
 alpha = 0.65
-fig, axs = plt.subplots(2, 1, constrained_layout=True, figsize=(15, 7))
+fig, axs = plt.subplots(2, 1, constrained_layout=True, figsize=(15, 7), layout='constrained')
 axs[0].plot(stores_counts[similar_stores[0]]['week'], stores_counts[similar_stores[0]]['count'],
             label='Similar 1', alpha=alpha)
 axs[0].plot(stores_counts[similar_stores[1]]['week'], stores_counts[similar_stores[1]]['count'],
