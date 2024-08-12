@@ -12,6 +12,11 @@ class L_Net(L.LightningModule):
         self.error_train = []
         self.error_test = []
 
+        self.best_error_train = np.inf
+        self.best_error_test = np.inf
+
+        self.out_dict = {}
+
     def configure_optimizers(self):
         return self.optimizer
 
@@ -32,14 +37,22 @@ class L_Net(L.LightningModule):
         return loss
 
     def on_train_epoch_end(self):
-        print(f'[INFO] Train error: {np.mean(self.error_train)}')
+        train_error = np.nanmean(self.error_train)
+        print(f'[INFO] Train error: {train_error}')
+        if train_error < self.best_error_train:
+            self.best_error_train = train_error
+
         self.error_train = []
 
     def on_validation_epoch_end(self):
-        print(f'[INFO] Val error: {np.mean(self.error_test)}')
+        test_error = np.nanmean(self.error_test)
+        print(f'[INFO] Val error: {test_error}')
+        if test_error < self.best_error_test:
+            self.best_error_test = test_error
+
         self.error_test = []
 
     def on_train_end(self):
-        print(f'[INFO] END EPOCH\nTrain error: {self.error_train}\nVal error: {self.error_test}')
-
-
+        print(f'[INFO] END EPOCH\nTrain error: {self.best_error_train}\nVal error: {self.best_error_test}')
+        self.out_dict['rmse_train'] = self.best_error_train
+        self.out_dict['rmse_test'] = self.best_error_test

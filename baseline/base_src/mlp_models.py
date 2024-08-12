@@ -7,16 +7,16 @@ class MLP(nn.Module):
         super().__init__()
 
         self.model = nn.Sequential(
-            nn.Linear(input_dim, 32),
+            nn.Linear(input_dim, 256),
             nn.ReLU(),
             nn.Dropout(0.5),
-            nn.Linear(32, 32),
+            nn.Linear(256, 256),
             nn.ReLU(),
             nn.Dropout(0.5),
-            nn.Linear(32, 16),
+            nn.Linear(256, 64),
             nn.ReLU(),
             nn.Dropout(0.5),
-            nn.Linear(16, 1)
+            nn.Linear(64, 1)
         )
 
     def forward(self, X):
