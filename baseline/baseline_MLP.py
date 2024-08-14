@@ -24,8 +24,8 @@ LAG = 15
 WEIGHT_DECAY = 0.004
 LR = 0.001
 EPOCHS = 40
-QUANT = False
-EMBED = False
+QUANT = True
+EMBED = True
 
 DATA_PATH = '/home/mateusz/Desktop/Demand-Forecast/DS/demand-forecasting/train.csv'
 embedders = {'C2': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C2.pkl',
