@@ -1,7 +1,7 @@
 #%%
 import torch
 from src import Embedding_dataset
-from src import Embedder
+from src import Embedder, Embedder_double
 from src import L_Net
 from torch.utils.data import DataLoader
 import importlib
@@ -25,16 +25,17 @@ WEIGHT_DECAY = 0.004
 DEVICE = 'cuda'
 EPOCHS = 10
 BATCH = 8
-COL = 3
+COL = [2, 3]
 
 data_train = Embedding_dataset(DATA_PATH, COL, True, out_path=OUT_PATH)
-data_val = Embedding_dataset(DATA_PATH, COL, False, label_encoder=data_train.label_encoder)
+data_val = Embedding_dataset(DATA_PATH, COL, False, label_encoders=data_train.label_encoders)
 
 train_dataloader = DataLoader(data_train, batch_size=BATCH, shuffle=True, num_workers=15)
 val_dataloader = DataLoader(data_val, batch_size=BATCH, shuffle=False, num_workers=15)
 
 # get model
-model = Embedder(data_train.data_shape, EMBEDDING_DIM).to(DEVICE)
+#model = Embedder(data_train.data_shape, EMBEDDING_DIM).to(DEVICE)
+model = Embedder_double(data_train.data_shape[0], data_train.data_shape[1], EMBEDDING_DIM).to(DEVICE)
 
 # set loss
 #loss = torch.nn.MSELoss()
@@ -46,7 +47,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=LR, weight_decay=WEIGHT_DECA
 #optimizer = torch.optim.SGD(model.parameters(), lr=LR)
 
 # set trainer
-light_model = L_Net(model=model, loss_fn=loss, optimizer=optimizer, out_path=OUT_PATH, col=COL)
+light_model = L_Net(model=model, loss_fn=loss, optimizer=optimizer, out_path=OUT_PATH)
 lightning_trainer = L.Trainer(accelerator=DEVICE, max_epochs=EPOCHS, limit_train_batches=1000, limit_val_batches=500,
                               check_val_every_n_epoch=1, log_every_n_steps=20, enable_progress_bar=True)
 
@@ -54,12 +55,12 @@ lightning_trainer = L.Trainer(accelerator=DEVICE, max_epochs=EPOCHS, limit_train
 lightning_trainer.fit(model=light_model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
 print('[INFO] DONE')
 #%%
-x, lbl = next(iter(train_dataloader))
-model = torch.load('/home/mateusz/Desktop/Demand-Forecast/embedding_models/model_c3.pth')
+x1, x2, lbl = next(iter(train_dataloader))
+model = torch.load('/home/mateusz/Desktop/Demand-Forecast/embedding_models/model.pth')
 embedder = torch.load('/home/mateusz/Desktop/Demand-Forecast/embedding_models/embedder_c3.pth')
 
-model_out = model(x)
-embedder_out = embedder(x)
+model_out = model(x1, x2)
+embedder_out = embedder(x2)
 
 print(model_out)
 print(embedder_out)
@@ -71,7 +72,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-COL = 2
+COL = 3
 
 onehot_embedder = pickle.load(open(f'/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C{COL}.pkl', 'rb'))
 categories = onehot_embedder.categories_
@@ -98,8 +99,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-similar_skus = [217217, 679023, 219029, 546789]
-similar_stores = [9432, 9813, 9147, 9250]
+similar_skus = [320485, 378934, 219029, 223153]
+similar_stores = [9498, 9532, 9164, 9456]
 
 path = 'DS/demand-forecasting/train.csv'
 data = pd.read_csv(path)

@@ -4,7 +4,7 @@ from .model_manager import ModelManager
 
 
 class L_Net(L.LightningModule):
-    def __init__(self, model, loss_fn, optimizer, out_path, col):
+    def __init__(self, model, loss_fn, optimizer, out_path):
         super().__init__()
         self.model = model
         self.loss_fn = loss_fn
@@ -13,14 +13,14 @@ class L_Net(L.LightningModule):
         self.error_train = []
         self.error_test = []
 
-        self.model_manager = ModelManager(out_path, col)
+        self.model_manager = ModelManager(out_path)
 
     def configure_optimizers(self):
         return self.optimizer
 
     def network_step(self, batch):
-        X, lab = batch
-        logits = self.model(X)
+        X_1, X_2, lab = batch
+        logits = self.model(X_1, X_2)
         loss = self.loss_fn(logits, lab)
         return logits, loss
 
