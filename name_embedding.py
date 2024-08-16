@@ -34,17 +34,13 @@ train_dataloader = DataLoader(data_train, batch_size=BATCH, shuffle=True, num_wo
 val_dataloader = DataLoader(data_val, batch_size=BATCH, shuffle=False, num_workers=15)
 
 # get model
-#model = Embedder(data_train.data_shape, EMBEDDING_DIM).to(DEVICE)
 model = Embedder_double(data_train.data_shape[0], data_train.data_shape[1], EMBEDDING_DIM).to(DEVICE)
 
 # set loss
-#loss = torch.nn.MSELoss()
-#loss = torch.nn.L1Loss()
 loss = RMSELoss()
 
 # set optimizer
-optimizer = torch.optim.Adam(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY, amsgrad=False)
-#optimizer = torch.optim.SGD(model.parameters(), lr=LR)
+optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY, amsgrad=False)
 
 # set trainer
 light_model = L_Net(model=model, loss_fn=loss, optimizer=optimizer, out_path=OUT_PATH)
@@ -72,7 +68,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-COL = 3
+COL = 2
 
 onehot_embedder = pickle.load(open(f'/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C{COL}.pkl', 'rb'))
 categories = onehot_embedder.categories_
@@ -99,8 +95,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-similar_skus = [320485, 378934, 219029, 223153]
-similar_stores = [9498, 9532, 9164, 9456]
+similar_skus = [320485, 398721, 216418, 320485]
+similar_stores = [9132, 9425, 9789, 9872]
 
 path = 'DS/demand-forecasting/train.csv'
 data = pd.read_csv(path)
