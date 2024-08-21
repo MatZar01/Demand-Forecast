@@ -1,6 +1,7 @@
 import lightning as L
 import numpy as np
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+from .mlp_model_manager import ModelManager
 
 
 class L_Net(L.LightningModule):
@@ -19,6 +20,8 @@ class L_Net(L.LightningModule):
         self.out_dict = {}
 
         self.scheduler = ReduceLROnPlateau(self.optimizer, factor=0.5, patience=10)
+
+        self.model_manager = ModelManager(out_path='/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp')
 
     def configure_optimizers(self):
         return self.optimizer
@@ -55,6 +58,8 @@ class L_Net(L.LightningModule):
 
         self.scheduler.step(metrics=test_error)
         print(f'LR: {self.optimizer.param_groups[0]["lr"]}')
+
+        self.model_manager.save_model(self.model, test_error)
 
         self.error_test = []
 
