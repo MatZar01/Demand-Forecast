@@ -30,6 +30,7 @@ def get_out_matrix(data):
 
 
 def show_matrix(matrix, data):
+    matrix[np.argwhere(matrix == np.inf)] = np.nan
     dims = (4.5, 8.27)
     plt.rcParams.update({'font.size': .81})
     sns.set(font_scale=.71)
@@ -46,6 +47,11 @@ data_mlp = get_data(path_mlp)
 out_mlp = get_out_matrix(data_mlp)
 show_matrix(out_mlp, data_mlp)
 #%%
+path_mlp = '/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/L_15_Q_False_EM_True.pkl'
+data_mlp = get_data(path_mlp)
+out_mlp = get_out_matrix(data_mlp)
+show_matrix(out_mlp, data_mlp)
+#%%
 path_mlp = '/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/L_15_Q_True_EM_False.pkl'
 data_mlp = get_data(path_mlp)
 out_mlp = get_out_matrix(data_mlp)
@@ -55,3 +61,21 @@ path_mlp = '/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/L_15_Q_Tr
 data_mlp = get_data(path_mlp)
 out_mlp = get_out_matrix(data_mlp)
 show_matrix(out_mlp, data_mlp)
+#%%
+from imutils import paths
+DIR = '/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp'
+pts = list(paths.list_files(DIR))
+pts = [p for p in pts if 'whole' in p]
+
+dicts = {}
+for p in pts:
+    dicts[p.split('/')[-1].split('.')[0]] = pkl.load(open(p, 'rb'))
+
+min_rmse = np.inf
+min_out = None
+for key in dicts.keys():
+    if dicts[key]['rmse_test'] < min_rmse:
+        min_rmse = dicts[key]['rmse_test']
+        min_out = dicts[key]
+
+print(min_out)

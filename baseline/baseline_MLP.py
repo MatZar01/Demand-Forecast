@@ -23,9 +23,11 @@ BATCH = 8
 LAG = 15
 WEIGHT_DECAY = 0.004
 LR = 0.001
-EPOCHS = 40
+EPOCHS = 200
 QUANT = True
 EMBED = True
+NORMALIZE = True
+MATCHES_ONLY = False
 
 DATA_PATH = '/home/mateusz/Desktop/Demand-Forecast/DS/demand-forecasting/train.csv'
 embedders = {'C2': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C2.pkl',
@@ -36,18 +38,21 @@ embedders = {'C2': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_m
 if not EMBED:
     embedders = None
 
+
 OUT_PATH = '/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp'
 OUT_NAME = f'L_{LAG}_Q_{QUANT}_EM_{EMBED}'
 
 out_dict = {}
 matches = get_matches(DATA_PATH)
-#matches = [None]
+
+if not MATCHES_ONLY:
+    matches = [None]
 
 for m in matches:
     try:
-        train_data = MLP_dataset(path=DATA_PATH, train=True, lag=LAG, get_quant=False, normalize=True,
+        train_data = MLP_dataset(path=DATA_PATH, train=True, lag=LAG, get_quant=QUANT, normalize=NORMALIZE,
                                  embedders=embedders, matches=m)
-        val_data = MLP_dataset(path=DATA_PATH, train=False, lag=LAG, get_quant=False, normalize=True,
+        val_data = MLP_dataset(path=DATA_PATH, train=False, lag=LAG, get_quant=QUANT, normalize=NORMALIZE,
                                embedders=embedders, matches=m)
 
         train_dataloader = DataLoader(train_data, batch_size=BATCH, shuffle=True, num_workers=15)
@@ -60,7 +65,7 @@ for m in matches:
         loss = RMSELoss()
 
         # set optimizer
-        optimizer = torch.optim.Adam(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY, amsgrad=False)
+        optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY, amsgrad=False)
 
         # set trainer
         light_model = L_Net(model=model, loss_fn=loss, optimizer=optimizer)

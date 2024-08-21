@@ -1,5 +1,6 @@
 import lightning as L
 import numpy as np
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 
 class L_Net(L.LightningModule):
@@ -16,6 +17,8 @@ class L_Net(L.LightningModule):
         self.best_error_test = np.inf
 
         self.out_dict = {}
+
+        self.scheduler = ReduceLROnPlateau(self.optimizer, factor=0.5, patience=10)
 
     def configure_optimizers(self):
         return self.optimizer
@@ -49,6 +52,9 @@ class L_Net(L.LightningModule):
         print(f'[INFO] Val error: {test_error}')
         if test_error < self.best_error_test:
             self.best_error_test = test_error
+
+        self.scheduler.step(metrics=test_error)
+        print(f'LR: {self.optimizer.param_groups[0]["lr"]}')
 
         self.error_test = []
 
