@@ -19,7 +19,7 @@ class L_Net(L.LightningModule):
 
         self.out_dict = {}
 
-        self.scheduler = ReduceLROnPlateau(self.optimizer, factor=0.5, patience=10)
+        self.scheduler = ReduceLROnPlateau(self.optimizer, factor=0.5, patience=5)
 
         self.model_manager = ModelManager(out_path='/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp')
 
