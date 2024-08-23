@@ -62,6 +62,50 @@ data_mlp = get_data(path_mlp)
 out_mlp = get_out_matrix(data_mlp)
 show_matrix(out_mlp, data_mlp)
 #%%
+path_mlp = '/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/whole_model_test.pkl'
+data_mlp = get_data(path_mlp)
+out_mlp = get_out_matrix(data_mlp)
+show_matrix(out_mlp, data_mlp)
+#%%
+path = '/home/mateusz/Desktop/Demand-Forecast/baseline/results/ARIMA_2024-7-16-4:24:10.pkl'
+data = pkl.load(open(path, 'rb'))
+
+stores = []
+skus = []
+rmses = []
+preds = []
+gts = []
+
+for key in data.keys():
+    run = data[key]
+    stores.append(key.split('_')[0])
+    skus.append(key.split('_')[1])
+    rmses.append(run['rmse'])
+    preds.append(run['preds'])
+    gts.append(run['gt'])
+
+stores_strip = list(set(stores))
+skus_strip = list(set(skus))
+
+out_matrix = np.zeros((len(stores_strip), len(skus_strip)))
+for i in range(len(stores_strip)):
+    for k in range(len(skus_strip)):
+        out_matrix[i][k] = data[f'{stores_strip[i]}_{skus_strip[k]}']['rmse']
+
+
+dims = (4.5, 8.27)
+plt.rcParams.update({'font.size': .81})
+sns.set(font_scale=.71)
+fig, ax = plt.subplots(figsize=dims)
+ax = sns.heatmap(out_matrix, xticklabels=skus_strip, yticklabels=stores_strip, square=True)
+ax.set_xlabel('SKU id')
+ax.set_ylabel('Store id')
+plt.title(f'ARIMA RMSE for store-sku match, mean: {np.nanmean(out_matrix)}')
+plt.tight_layout()
+plt.show()
+
+
+#%%
 from imutils import paths
 DIR = '/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp'
 pts = list(paths.list_files(DIR))
