@@ -59,7 +59,7 @@ for m in matches:
         val_dataloader = DataLoader(val_data, batch_size=BATCH, shuffle=True, num_workers=15)
 
 
-        model = torch.load('/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/mlp_model_for_ft.pth')
+        model = torch.load('/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/embedding/mlp_model_v2.pth')
 
         # set loss
         loss = RMSELoss()
@@ -68,7 +68,7 @@ for m in matches:
         optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY, amsgrad=False)
 
         # set trainer
-        light_model = L_Net(model=model, loss_fn=loss, optimizer=optimizer)
+        light_model = L_Net(model=model, loss_fn=loss, optimizer=optimizer, out_path=OUT_PATH)
         lightning_trainer = L.Trainer(accelerator=DEVICE, max_epochs=EPOCHS, limit_train_batches=1000, limit_val_batches=500,
                                       check_val_every_n_epoch=1, log_every_n_steps=20, enable_progress_bar=True)
 

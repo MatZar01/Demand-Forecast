@@ -5,7 +5,7 @@ from .mlp_model_manager import ModelManager
 
 
 class L_Net(L.LightningModule):
-    def __init__(self, model, loss_fn, optimizer, out_path, save_model=True):
+    def __init__(self, model, loss_fn, optimizer, out_path, save_model=False):
         super().__init__()
         self.model = model
         self.loss_fn = loss_fn
@@ -19,7 +19,7 @@ class L_Net(L.LightningModule):
 
         self.out_dict = {}
 
-        self.scheduler = ReduceLROnPlateau(self.optimizer, factor=0.5, patience=15)
+        self.scheduler = ReduceLROnPlateau(self.optimizer, factor=0.5, patience=5)
 
         self.model_manager = ModelManager(out_path=out_path, save_model=save_model)
 

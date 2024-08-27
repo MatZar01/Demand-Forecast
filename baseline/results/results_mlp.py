@@ -80,6 +80,18 @@ data_mlp = get_data(path_mlp)
 out_mlp = get_out_matrix(data_mlp)
 show_matrix(out_mlp, data_mlp)
 #%%
+### WHOLE MODEL - EXTENDED EMBEDDING model v2
+path_mlp = '/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/embedding/whole_model_v2_test.pkl'
+data_mlp = get_data(path_mlp)
+out_mlp = get_out_matrix(data_mlp)
+show_matrix(out_mlp, data_mlp)
+#%%
+### WHOLE MODEL - EXTENDED EMBEDDING model v2 finetunng
+path_mlp = '/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/embedding/L_15_Q_True_EM_True_FT.pkl'
+data_mlp = get_data(path_mlp)
+out_mlp = get_out_matrix(data_mlp)
+show_matrix(out_mlp, data_mlp)
+#%%
 ### ARIMA
 path = '/home/mateusz/Desktop/Demand-Forecast/baseline/results/ARIMA_2024-7-16-4:24:10.pkl'
 data = pkl.load(open(path, 'rb'))

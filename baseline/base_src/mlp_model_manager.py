@@ -15,4 +15,4 @@ class ModelManager:
                 model = copy.deepcopy(model)
                 self.last_low_error = error
 
-                torch.save(model.cpu(), f'{self.out_path}/mlp_model_v2.pth')
+                torch.save(model.cpu(), f'{self.out_path}/mlp_model.pth')

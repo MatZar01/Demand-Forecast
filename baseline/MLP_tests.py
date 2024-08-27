@@ -32,14 +32,14 @@ embedders = {'C2': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_m
              'C3': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C3.pkl',
                     'cat2vec': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/embedder_c3.pth'}}
 
-model = torch.load('/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/embedding/mlp_model.pth')
+model = torch.load('/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/embedding/mlp_model_v2.pth')
 loss_fn = RMSELoss()
 
 if not EMBED:
     embedders = None
 
 
-OUT_PATH = '/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/embedding/whole_model_test.pkl'
+OUT_PATH = '/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/embedding/whole_model_v2_test.pkl'
 OUT_NAME = f'L_{LAG}_Q_{QUANT}_EM_{EMBED}'
 
 out_dict = {}
