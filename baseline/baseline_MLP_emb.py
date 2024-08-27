@@ -1,4 +1,4 @@
-from base_src import MLP_dataset, MLP_dataset_emb
+from base_src import MLP_dataset_emb
 from base_src import get_matches
 from base_src import MLP, MLP_emb
 from base_src import L_Net
@@ -23,24 +23,23 @@ BATCH = 8
 LAG = 15
 WEIGHT_DECAY = 0.004
 LR = 0.001
-EPOCHS = 40
+EPOCHS = 200
 QUANT = True
 EMBED = True
 NORMALIZE = True
-MATCHES_ONLY = True
+MATCHES_ONLY = False
 
 DATA_PATH = '/home/mateusz/Desktop/Demand-Forecast/DS/demand-forecasting/train.csv'
-embedders = {'C2': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C2.pkl',
-                    'cat2vec': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/embedder_c2.pth'},
-             'C3': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C3.pkl',
-                    'cat2vec': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/embedder_c3.pth'}}
+embedders = {'C2': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C2.pkl'},
+             'C3': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C3.pkl'}}
 
 if not EMBED:
     embedders = None
 
 
 OUT_PATH = '/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/embedding'
-OUT_NAME = f'L_{LAG}_Q_{QUANT}_EM_{EMBED}_FT'
+OUT_NAME = f'L_{LAG}_Q_{QUANT}_EM_{EMBED}'
+SAVE_MODEL = True
 
 out_dict = {}
 matches = get_matches(DATA_PATH)
@@ -51,15 +50,14 @@ if not MATCHES_ONLY:
 for m in matches:
     try:
         train_data = MLP_dataset_emb(path=DATA_PATH, train=True, lag=LAG, get_quant=QUANT, normalize=NORMALIZE,
-                                 embedders=embedders, matches=m)
+                                     embedders=embedders, matches=m)
         val_data = MLP_dataset_emb(path=DATA_PATH, train=False, lag=LAG, get_quant=QUANT, normalize=NORMALIZE,
-                               embedders=embedders, matches=m)
+                                   embedders=embedders, matches=m)
 
         train_dataloader = DataLoader(train_data, batch_size=BATCH, shuffle=True, num_workers=15)
         val_dataloader = DataLoader(val_data, batch_size=BATCH, shuffle=True, num_workers=15)
 
-
-        model = torch.load('/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/mlp_model_for_ft.pth')
+        model = MLP_emb(input_dim=train_data.input_shape, cat_2_size=train_data.cat_2_size, cat_3_size=train_data.cat_3_size, embedding_size=5)
 
         # set loss
         loss = RMSELoss()
@@ -68,7 +66,7 @@ for m in matches:
         optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY, amsgrad=False)
 
         # set trainer
-        light_model = L_Net(model=model, loss_fn=loss, optimizer=optimizer)
+        light_model = L_Net(model=model, loss_fn=loss, optimizer=optimizer, out_path=OUT_PATH, save_model=SAVE_MODEL)
         lightning_trainer = L.Trainer(accelerator=DEVICE, max_epochs=EPOCHS, limit_train_batches=1000, limit_val_batches=500,
                                       check_val_every_n_epoch=1, log_every_n_steps=20, enable_progress_bar=True)
 

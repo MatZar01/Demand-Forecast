@@ -41,6 +41,7 @@ if not EMBED:
 
 OUT_PATH = '/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp'
 OUT_NAME = f'L_{LAG}_Q_{QUANT}_EM_{EMBED}'
+SAVE_MODEL = True
 
 out_dict = {}
 matches = get_matches(DATA_PATH)
@@ -58,7 +59,6 @@ for m in matches:
         train_dataloader = DataLoader(train_data, batch_size=BATCH, shuffle=True, num_workers=15)
         val_dataloader = DataLoader(val_data, batch_size=BATCH, shuffle=True, num_workers=15)
 
-
         model = MLP(input_dim=train_data.input_shape)
 
         # set loss
@@ -68,7 +68,7 @@ for m in matches:
         optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY, amsgrad=False)
 
         # set trainer
-        light_model = L_Net(model=model, loss_fn=loss, optimizer=optimizer)
+        light_model = L_Net(model=model, loss_fn=loss, optimizer=optimizer, out_path=OUT_PATH, save_model=SAVE_MODEL)
         lightning_trainer = L.Trainer(accelerator=DEVICE, max_epochs=EPOCHS, limit_train_batches=1000, limit_val_batches=500,
                                       check_val_every_n_epoch=1, log_every_n_steps=20, enable_progress_bar=True)
 

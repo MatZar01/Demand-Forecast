@@ -5,7 +5,7 @@ from .mlp_model_manager import ModelManager
 
 
 class L_Net(L.LightningModule):
-    def __init__(self, model, loss_fn, optimizer):
+    def __init__(self, model, loss_fn, optimizer, out_path, save_model=True):
         super().__init__()
         self.model = model
         self.loss_fn = loss_fn
@@ -19,16 +19,16 @@ class L_Net(L.LightningModule):
 
         self.out_dict = {}
 
-        self.scheduler = ReduceLROnPlateau(self.optimizer, factor=0.5, patience=5)
+        self.scheduler = ReduceLROnPlateau(self.optimizer, factor=0.5, patience=15)
 
-        self.model_manager = ModelManager(out_path='/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp')
+        self.model_manager = ModelManager(out_path=out_path, save_model=save_model)
 
     def configure_optimizers(self):
         return self.optimizer
 
     def network_step(self, batch):
-        X, lab = batch
-        logits = self.model(X)
+        emb_2, emb_3, X, lab = batch
+        logits = self.model(emb_2, emb_3, X)
         loss = self.loss_fn(logits, lab)
         return logits, loss
 
