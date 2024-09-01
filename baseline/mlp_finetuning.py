@@ -58,7 +58,6 @@ for m in matches:
         train_dataloader = DataLoader(train_data, batch_size=BATCH, shuffle=True, num_workers=15)
         val_dataloader = DataLoader(val_data, batch_size=BATCH, shuffle=True, num_workers=15)
 
-
         model = torch.load('/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/embedding/mlp_model_v2.pth')
 
         # set loss

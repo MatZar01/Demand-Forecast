@@ -42,7 +42,7 @@ def show_matrix(matrix, data):
     plt.tight_layout()
     plt.show()
 
-
+#%%
 data_mlp = get_data(path_mlp)
 out_mlp = get_out_matrix(data_mlp)
 show_matrix(out_mlp, data_mlp)
@@ -88,6 +88,12 @@ show_matrix(out_mlp, data_mlp)
 #%%
 ### WHOLE MODEL - EXTENDED EMBEDDING model v2 finetunng
 path_mlp = '/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/embedding/L_15_Q_True_EM_True_FT.pkl'
+data_mlp = get_data(path_mlp)
+out_mlp = get_out_matrix(data_mlp)
+show_matrix(out_mlp, data_mlp)
+#%%
+### WHOLE MODEL - EXTENDED EMBEDDING TRANSFER LEARNING
+path_mlp = '/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/transfer/L_15_Q_True_EM_True_FT.pkl'
 data_mlp = get_data(path_mlp)
 out_mlp = get_out_matrix(data_mlp)
 show_matrix(out_mlp, data_mlp)
