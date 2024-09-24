@@ -19,7 +19,7 @@ class L_Net(L.LightningModule):
 
         self.out_dict = {}
 
-        self.scheduler = ReduceLROnPlateau(self.optimizer, factor=0.5, patience=5)
+        self.scheduler = ReduceLROnPlateau(self.optimizer, factor=0.6, patience=10)
 
         self.model_manager = ModelManager(out_path=out_path, save_model=save_model)
 
@@ -91,7 +91,7 @@ class L_Net_TL(L.LightningModule):
 
         self.out_dict = {}
 
-        self.scheduler = ReduceLROnPlateau(self.optimizer, factor=0.5, patience=5)
+        self.scheduler = ReduceLROnPlateau(self.optimizer, factor=0.5, patience=10)
 
         self.model_manager = ModelManager(out_path=out_path, save_model=save_model)
 

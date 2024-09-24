@@ -40,15 +40,19 @@ class MLP_emb(nn.Module):
         self.model = nn.Sequential(
             nn.Linear(input_dim, 512),
             nn.ReLU(),
+            nn.BatchNorm1d(512),
             nn.Dropout(0.5),
             nn.Linear(512, 512),
             nn.ReLU(),
+            nn.BatchNorm1d(512),
             nn.Dropout(0.5),
             nn.Linear(512, 256),
             nn.ReLU(),
+            nn.BatchNorm1d(256),
             nn.Dropout(0.5),
             nn.Linear(256, 64),
             nn.ReLU(),
+            nn.BatchNorm1d(64),
             nn.Dropout(0.5),
             nn.Linear(64, 1)
         )

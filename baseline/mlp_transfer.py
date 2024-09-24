@@ -40,7 +40,7 @@ if not EMBED:
 
 SAVE_MODEL = False
 
-OUT_PATH = '/baseline/results_mlp/transfer'
+OUT_PATH = '/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/transfer'
 OUT_NAME = f'L_{LAG}_Q_{QUANT}_EM_{EMBED}_FT'
 
 base_model = torch.load('/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/transfer/mlp_model.pth')

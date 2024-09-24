@@ -10,9 +10,8 @@ class ModelManager:
         self.save = save_model
 
     def save_model(self, model, error):
-        if self.save:
-            if error < self.last_low_error:
+        if error < self.last_low_error:
+            self.last_low_error = error
+            if self.save:
                 model = copy.deepcopy(model)
-                self.last_low_error = error
-
                 torch.save(model.cpu(), f'{self.out_path}/mlp_model.pth')
