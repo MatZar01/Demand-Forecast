@@ -10,9 +10,10 @@ class MatchBank:
 
         self.matches_left = init_matches
         self.matches_used = []
+        self.current_matches_group = None
 
         self.training_matches = None
-        self.single_train_match = np.array([init_matches[0]])
+        self.single_train_match = init_matches[0]
 
     def test_phase(self, model, loss_fn):
         rmse_results = {}

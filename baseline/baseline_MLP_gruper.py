@@ -48,6 +48,11 @@ OUT_PATH = '/home/mateusz/Desktop/Demand-Forecast/baseline/results/name_clusteri
 
 out_dict = {}
 
+# training method:
+# phase 1 - train initially on single match
+# phase 2 - test model on the rest of matches
+# phase 3 - train the model on the matches group
+# repeat for the leftover matches
 try:
     train_data = MLP_dataset_cluster(path=DATA_PATH, train=True, lag=LAG, get_quant=QUANT, normalize=NORMALIZE,
                                      embedders=embedders, matches=matches)
