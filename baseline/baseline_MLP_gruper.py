@@ -28,9 +28,9 @@ EPOCHS = 20
 QUANT = True
 EMBED = True
 NORMALIZE = True
-THRESHOLD = 25
+THRESHOLD = 20
 
-MAX_MODELS = 30
+MAX_MODELS = 40
 MIN_DATA_PER_MODEL = 10
 
 DATA_PATH = '/home/mateusz/Desktop/Demand-Forecast/DS/demand-forecasting/train.csv'
@@ -57,18 +57,22 @@ model_num = 0
 # repeat for the leftover matches
 # phase 4 - train last model for crumbs
 
-#try:
 for i in range(MAX_MODELS):
     # break if no more data
     if len(match_bank.matches_left) < MIN_DATA_PER_MODEL:
+        match_bank.threshold += 10
         break
 
     # PHASE 1
     while True:
-        train_data = MLP_dataset_cluster(path=DATA_PATH, train=True, lag=LAG, get_quant=QUANT, normalize=NORMALIZE,
-                                         embedders=embedders, matches=match_bank.single_train_match)
-        val_data = MLP_dataset_cluster(path=DATA_PATH, train=False, lag=LAG, get_quant=QUANT, normalize=NORMALIZE,
-                                       embedders=embedders, matches=match_bank.single_train_match)
+        try:
+            train_data = MLP_dataset_cluster(path=DATA_PATH, train=True, lag=LAG, get_quant=QUANT, normalize=NORMALIZE,
+                                             embedders=embedders, matches=match_bank.single_train_match)
+            val_data = MLP_dataset_cluster(path=DATA_PATH, train=False, lag=LAG, get_quant=QUANT, normalize=NORMALIZE,
+                                           embedders=embedders, matches=match_bank.single_train_match)
+        except ValueError:
+            print('[INFO] No match found, skipping...')
+            match_bank.change_idx()
 
         train_dataloader = DataLoader(train_data, batch_size=BATCH, shuffle=True, num_workers=0)
         val_dataloader = DataLoader(val_data, batch_size=BATCH, shuffle=False, num_workers=0)
@@ -98,9 +102,12 @@ for i in range(MAX_MODELS):
         else:
             match_bank.change_idx()
 
-    # PHASE 2
+    # PHASE 2 (skip if low on matches)
     match_bank.test_phase(model=model, loss_fn=loss)
     match_bank.assess_test()
+    if len(match_bank.matches_used) < MIN_DATA_PER_MODEL:
+        match_bank.change_idx()
+        continue
 
     # PHASE 3
     train_data = MLP_dataset_cluster(path=DATA_PATH, train=True, lag=LAG, get_quant=QUANT, normalize=NORMALIZE,
@@ -137,7 +144,7 @@ for i in range(MAX_MODELS):
 
     # update match bank
     match_bank.matches_used = []
-    match_bank.single_train_match = match_bank.matches_left[0]
+    match_bank.single_train_match = [match_bank.matches_left[0]]
 
 # PHASE 4 (PHASE 3 repeated for leftovers)
 match_bank.matches_used = match_bank.matches_left + match_bank.matches_skipped
@@ -172,12 +179,6 @@ lightning_trainer.fit(model=light_model, train_dataloaders=train_dataloader, val
 out_dict[model_num] = {}
 out_dict[model_num]['matches'] = match_bank.matches_used
 out_dict[model_num]['rmse'] = light_model.out_dict['rmse_test']
-
-#out_dict[group].append(light_model.out_dict['rmse_test'])
-
-#except:
-pass
-#print(f'[INFO] model from {group}, No. {num} failed')
 
 pickle.dump(out_dict, open(f'{OUT_PATH}/model_out_grouper.pkl', 'wb'))
 
