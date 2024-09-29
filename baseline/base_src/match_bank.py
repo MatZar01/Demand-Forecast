@@ -60,6 +60,9 @@ class MatchBank:
     def change_idx(self):
         self.matches_skipped.append(self.single_train_match)
         self.current_idx += 1
-        self.single_train_match = [self.matches_left[self.current_idx]]
+        try:
+            self.single_train_match = [self.matches_left[self.current_idx]]
+        except IndexError:
+            self.single_train_match = [self.matches_left[np.random.choice(list(range(self.matches_left.size)))]]
 
         self.matches_left = np.delete(self.matches_left, self.current_idx-1, axis=0)

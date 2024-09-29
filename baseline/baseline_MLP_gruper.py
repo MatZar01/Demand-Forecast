@@ -60,8 +60,14 @@ model_num = 0
 for i in range(MAX_MODELS):
     # break if no more data and update threshold
     if len(match_bank.matches_left) < MIN_DATA_PER_MODEL:
-        match_bank.threshold += 10
-        break
+        match_bank.threshold += 5
+        match_bank.matches_left = match_bank.matches_left + match_bank.matches_skipped
+        match_bank.current_idx = 0
+        match_bank.single_train_match = [match_bank.matches_left[0]]
+        if match_bank.threshold > 36:
+            break
+        else:
+            continue
 
     # PHASE 1
     while True:
