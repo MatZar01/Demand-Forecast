@@ -25,9 +25,7 @@ WEIGHT_DECAY = 0.004
 LR = 0.0001
 EPOCHS = 100
 QUANT = True
-EMBED = True
 NORMALIZE = True
-MATCHES_ONLY = True
 
 DATA_PATH = '/home/mateusz/Desktop/Demand-Forecast/DS/demand-forecasting/train.csv'
 embedders = {'C2': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C2.pkl'},
@@ -35,9 +33,6 @@ embedders = {'C2': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_m
 
 MATCHES_PATH = '/home/mateusz/Desktop/Demand-Forecast/baseline/results/name_clustering/emb_assignments.pkl'
 assignments = pickle.load(open(MATCHES_PATH, 'rb'))
-
-if not EMBED:
-    embedders = None
 
 SAVE_MODEL = False
 
