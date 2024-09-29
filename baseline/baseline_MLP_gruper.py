@@ -30,7 +30,7 @@ EMBED = True
 NORMALIZE = True
 THRESHOLD = 20
 
-MAX_MODELS = 40
+MAX_MODELS = 50
 MIN_DATA_PER_MODEL = 10
 
 DATA_PATH = '/home/mateusz/Desktop/Demand-Forecast/DS/demand-forecasting/train.csv'
@@ -58,7 +58,7 @@ model_num = 0
 # phase 4 - train last model for crumbs
 
 for i in range(MAX_MODELS):
-    # break if no more data
+    # break if no more data and update threshold
     if len(match_bank.matches_left) < MIN_DATA_PER_MODEL:
         match_bank.threshold += 10
         break

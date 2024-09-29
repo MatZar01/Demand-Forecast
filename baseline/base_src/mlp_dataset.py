@@ -261,10 +261,14 @@ class MLP_dataset_cluster(Dataset):
     def get_match(self):
         train_matches = []
         for match in self.matches:
-            store_match_train = self.data_all[np.where(self.data_all[:, 2] == match[0])[0]]
-            single_match = store_match_train[np.where(store_match_train[:, 3] == match[1])[0]]
-            if single_match.size != 0:
-                train_matches.append(single_match)
+            try:
+                store_match_train = self.data_all[np.where(self.data_all[:, 2] == match[0])[0]]
+                single_match = store_match_train[np.where(store_match_train[:, 3] == match[1])[0]]
+                if single_match.size != 0:
+                    train_matches.append(single_match)
+            except ValueError:
+                print(f'[INFO] No match found for {match}, skipping...')
+                pass
         return train_matches
 
     def get_x_y(self):
