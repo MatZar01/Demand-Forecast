@@ -268,7 +268,7 @@ class MLP_dataset_cluster(Dataset):
                     train_matches.append(single_match)
             except ValueError:
                 print(f'[INFO] No match found for {match}, skipping...')
-                pass
+                continue
         return train_matches
 
     def get_x_y(self):

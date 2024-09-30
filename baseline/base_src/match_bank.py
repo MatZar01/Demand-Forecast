@@ -7,14 +7,13 @@ from tqdm import tqdm
 class MatchBank:
     def __init__(self, init_matches: np.array, embedders: dict, threshold: float):
         self.embedders = embedders
-        self.init_matches = init_matches
+        self.init_matches = list(init_matches)
 
-        self.matches_left = init_matches
+        self.matches_left = list(init_matches)
         self.matches_used = []
-        self.matches_skipped = []
 
         self.current_idx = 0
-        self.single_train_match = [init_matches[self.current_idx]]
+        self.single_train_match = [self.init_matches[self.current_idx]]
 
         self.test_results = None
         self.threshold = threshold
@@ -29,7 +28,7 @@ class MatchBank:
                                                train=False, lag=15, get_quant=True, normalize=True,
                                                embedders=self.embedders, matches=np.array([m]))
             except ValueError:
-                pass
+                continue
 
             b_size = val_data.y_lag.shape[0] - 1
             val_dataloader = DataLoader(val_data, batch_size=b_size, shuffle=True, num_workers=0)
@@ -49,7 +48,7 @@ class MatchBank:
         for key in tqdm(self.test_results.keys()):
             match = np.array([int(key.split('_')[0]), int(key.split('_')[1])])
             rmse = self.test_results[key]
-            if rmse < self.threshold:
+            if rmse < self.threshold * 1.6:
                 matches_used.append(match)
             else:
                 matches_left.append(match)
@@ -58,11 +57,14 @@ class MatchBank:
         self.matches_left = matches_left
 
     def change_idx(self):
-        self.matches_skipped.append(self.single_train_match)
         self.current_idx += 1
         try:
             self.single_train_match = [self.matches_left[self.current_idx]]
         except IndexError:
-            self.single_train_match = [self.matches_left[np.random.choice(list(range(self.matches_left.size)))]]
+            self.single_train_match = [self.matches_left[0]]
+            self.threshold += 5
+            self.current_idx = 0
 
-        self.matches_left = np.delete(self.matches_left, self.current_idx-1, axis=0)
+    def swap_matches(self):
+        self.matches_left = self.matches_left + self.matches_used
+        self.matches_used = []
