@@ -23,10 +23,14 @@ print(f'CLUSTERING RESULTS\n'
       f'100 models: {mean_rmse_100}\n\n')
 
 #%%
+import pickle
+import numpy as np
+
+
 """
 MODEL GROUPING
 """
-data_grouping = pickle.load(open('/home/mateusz/Desktop/Demand-Forecast/baseline/results/name_clustering/model_out_grouper_1.pkl', 'rb'))
+data_grouping = pickle.load(open('/home/mateusz/Desktop/Demand-Forecast/baseline/results/name_clustering/model_out_grouper.pkl', 'rb'))
 
 rmse_w = 0
 weights = 0

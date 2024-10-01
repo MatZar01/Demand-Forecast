@@ -23,15 +23,15 @@ DEVICE = 'cuda'
 BATCH = 8
 LAG = 15
 WEIGHT_DECAY = 0.004
-LR = 0.0001
-EPOCHS = 20
+LR = 0.001
+EPOCHS = 30
 QUANT = True
 EMBED = True
 NORMALIZE = True
 THRESHOLD = 20
 
 MAX_MODELS = 1500
-MIN_DATA_PER_MODEL = 10
+MIN_DATA_PER_MODEL = 5
 
 DATA_PATH = '/home/mateusz/Desktop/Demand-Forecast/DS/demand-forecasting/train.csv'
 embedders = {'C2': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C2.pkl'},
@@ -91,7 +91,7 @@ for i in range(MAX_MODELS):
                             save_model=SAVE_MODEL)
 
         lightning_trainer = L.Trainer(accelerator=DEVICE, max_epochs=EPOCHS, limit_train_batches=4000,
-                                      limit_val_batches=500,
+                                      limit_val_batches=500, logger=False, enable_checkpointing=False,
                                       check_val_every_n_epoch=1, log_every_n_steps=20, enable_progress_bar=True)
 
         # train
@@ -133,7 +133,7 @@ for i in range(MAX_MODELS):
                         save_model=SAVE_MODEL)
 
     lightning_trainer = L.Trainer(accelerator=DEVICE, max_epochs=EPOCHS, limit_train_batches=4000,
-                                  limit_val_batches=500,
+                                  limit_val_batches=500, logger=False, enable_checkpointing=False,
                                   check_val_every_n_epoch=1, log_every_n_steps=20, enable_progress_bar=True)
 
     # train
@@ -159,7 +159,7 @@ val_data = MLP_dataset_cluster(path=DATA_PATH, train=False, lag=LAG, get_quant=Q
 train_dataloader = DataLoader(train_data, batch_size=BATCH, shuffle=True, num_workers=0)
 val_dataloader = DataLoader(val_data, batch_size=BATCH, shuffle=False, num_workers=0)
 
-model = MLP_emb(input_dim=train_data.input_shape, cat_2_size=train_data.cat_2_size, cat_3_size=train_data.cat_3_size, embedding_size=5)
+model = MLP_emb_tl(input_dim=train_data.input_shape, cat_2_size=train_data.cat_2_size, cat_3_size=train_data.cat_3_size, embedding_size=5)
 
 # set loss
 loss = RMSELoss()
@@ -172,7 +172,7 @@ light_model = L_Net(model=model, loss_fn=loss, optimizer=optimizer, out_path=OUT
                     save_model=SAVE_MODEL)
 
 lightning_trainer = L.Trainer(accelerator=DEVICE, max_epochs=EPOCHS, limit_train_batches=4000,
-                              limit_val_batches=500,
+                              limit_val_batches=500, logger=False, enable_checkpointing=False,
                               check_val_every_n_epoch=1, log_every_n_steps=20, enable_progress_bar=True)
 
 # train
