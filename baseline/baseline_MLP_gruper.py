@@ -120,7 +120,7 @@ for i in range(MAX_MODELS):
     train_dataloader = DataLoader(train_data, batch_size=BATCH, shuffle=True, num_workers=0)
     val_dataloader = DataLoader(val_data, batch_size=BATCH, shuffle=False, num_workers=0)
 
-    model = MLP_emb_tl(input_dim=train_data.input_shape, cat_2_size=train_data.cat_2_size, cat_3_size=train_data.cat_3_size, embedding_size=5)
+    model = MLP_emb(input_dim=train_data.input_shape, cat_2_size=train_data.cat_2_size, cat_3_size=train_data.cat_3_size, embedding_size=5)
 
     # set loss
     loss = RMSELoss()
@@ -159,7 +159,7 @@ val_data = MLP_dataset_cluster(path=DATA_PATH, train=False, lag=LAG, get_quant=Q
 train_dataloader = DataLoader(train_data, batch_size=BATCH, shuffle=True, num_workers=0)
 val_dataloader = DataLoader(val_data, batch_size=BATCH, shuffle=False, num_workers=0)
 
-model = MLP_emb_tl(input_dim=train_data.input_shape, cat_2_size=train_data.cat_2_size, cat_3_size=train_data.cat_3_size, embedding_size=5)
+model = MLP_emb(input_dim=train_data.input_shape, cat_2_size=train_data.cat_2_size, cat_3_size=train_data.cat_3_size, embedding_size=5)
 
 # set loss
 loss = RMSELoss()

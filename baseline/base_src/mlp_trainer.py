@@ -5,14 +5,17 @@ from .mlp_model_manager import ModelManager
 
 
 class L_Net(L.LightningModule):
-    def __init__(self, model, loss_fn, optimizer, out_path, save_model=True):
+    def __init__(self, model, loss_fn, test_fn, optimizer, out_path, save_model=True):
         super().__init__()
         self.model = model
         self.loss_fn = loss_fn
+        self.test_fn = test_fn
         self.optimizer = optimizer
 
         self.error_train = []
         self.error_test = []
+        self.loss_train = []
+        self.loss_test = []
 
         self.best_error_train = np.inf
         self.best_error_test = np.inf
@@ -30,29 +33,35 @@ class L_Net(L.LightningModule):
         emb_2, emb_3, X, lab = batch
         logits = self.model(emb_2, emb_3, X)
         loss = self.loss_fn(logits, lab)
-        return logits, loss
+        error = self.test_fn(logits, lab)
+        return logits, loss, error
 
     def training_step(self, batch):
-        logits, loss = self.network_step(batch)
-        self.error_train.append(loss.detach().cpu().numpy())
+        logits, loss, error = self.network_step(batch)
+        self.error_train.append(error.detach().cpu().numpy())
+        self.loss_train.append(loss.detach().cpu().numpy())
         return loss
 
     def validation_step(self, batch):
-        logits, loss = self.network_step(batch)
-        self.error_test.append(loss.detach().cpu().numpy())
+        logits, loss, error = self.network_step(batch)
+        self.error_test.append(error.detach().cpu().numpy())
+        self.loss_test.append(loss.detach().cpu().numpy())
         return loss
 
     def on_train_epoch_end(self):
         train_error = np.nanmean(self.error_train)
-        print(f'[INFO] Train error: {train_error}')
+        train_loss = np.nanmean(self.loss_train)
+        print(f'[INFO] Train RMSE: {train_error}, Loss: {train_loss}')
         if train_error < self.best_error_train:
             self.best_error_train = train_error
 
         self.error_train = []
+        self.loss_train = []
 
     def on_validation_epoch_end(self):
         test_error = np.nanmean(self.error_test)
-        print(f'[INFO] Val error: {test_error}')
+        test_loss = np.nanmean(self.loss_test)
+        print(f'[INFO] Val RMSE: {test_error}, Loss: {test_loss}')
         if test_error < self.best_error_test:
             self.best_error_test = test_error
 
@@ -62,6 +71,7 @@ class L_Net(L.LightningModule):
         self.model_manager.save_model(self.model, test_error)
 
         self.error_test = []
+        self.loss_test = []
 
     def on_train_end(self):
         print(f'[INFO] END EPOCH\nTrain error: {self.best_error_train}\nVal error: {self.best_error_test}')
