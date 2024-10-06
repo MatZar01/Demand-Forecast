@@ -9,6 +9,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 import lightning as L
+from torchmetrics import MeanSquaredLogError, SymmetricMeanAbsolutePercentageError
 
 
 class RMSELoss(torch.nn.Module):
@@ -20,12 +21,21 @@ class RMSELoss(torch.nn.Module):
         return torch.sqrt(self.mse(yhat, y))
 
 
+class RMSLE(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.msle = MeanSquaredLogError()
+
+    def forward(self, yhat, y):
+        return torch.sqrt(self.msle(yhat, y))
+
+
 DEVICE = 'cuda'
-BATCH = 8
+BATCH = 2
 LAG = 15
 WEIGHT_DECAY = 0.004
 LR = 0.001
-EPOCHS = 30
+EPOCHS = 40
 QUANT = True
 EMBED = True
 NORMALIZE = True
@@ -54,12 +64,16 @@ val_data = MLP_dataset_cluster(path=DATA_PATH, train=False, lag=LAG, get_quant=Q
 train_dataloader = DataLoader(train_data, batch_size=BATCH, shuffle=True, num_workers=0)
 val_dataloader = DataLoader(val_data, batch_size=BATCH, shuffle=False, num_workers=0)
 
-model = MLP_emb_pool(input_dim=train_data.input_shape, cat_2_size=train_data.cat_2_size, cat_3_size=train_data.cat_3_size, embedding_size=5)
+model = MLP_emb_tl(input_dim=train_data.input_shape, cat_2_size=train_data.cat_2_size, cat_3_size=train_data.cat_3_size, embedding_size=5)
 
 # set loss and test fns
 test_fn = RMSELoss()
 #loss = nn.SmoothL1Loss()
-loss = RMSELoss()
+#loss = RMSELoss()
+loss = MeanSquaredLogError()
+#loss = SymmetricMeanAbsolutePercentageError()
+#loss = RMSLE()
+
 
 # set optimizer
 optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY, amsgrad=False)

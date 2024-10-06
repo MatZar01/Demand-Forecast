@@ -30,7 +30,7 @@ import numpy as np
 """
 MODEL GROUPING
 """
-data_grouping = pickle.load(open('/home/mateusz/Desktop/Demand-Forecast/baseline/results/name_clustering/model_out_grouper.pkl', 'rb'))
+data_grouping = pickle.load(open('/home/mateusz/Desktop/Demand-Forecast/baseline/results/name_clustering/model_out_grouper_1.pkl', 'rb'))
 
 rmse_w = 0
 weights = 0
