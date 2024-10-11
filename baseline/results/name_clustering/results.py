@@ -42,3 +42,24 @@ for key in data_grouping.keys():
 print(f'GROUPING RESULTS\n'
       f'NUMBER OF MODELS: {len(data_grouping.keys())}\n'
       f'Mean rmse: {rmse_w/weights}')
+
+#%%
+import pickle
+import numpy as np
+
+
+"""
+MODEL REFINEMENT
+"""
+data_refined = pickle.load(open('/home/mateusz/Desktop/Demand-Forecast/baseline/results/name_clustering/model_grouping_refinement.pkl', 'rb'))
+
+rmse_w = 0
+weights = 0
+
+for key in data_refined.keys():
+      rmse_w += data_refined[key]['new_rmse'] * len(data_refined[key]['matches'])
+      weights += len(data_refined[key]['matches'])
+
+print(f'GROUPING REFINEMENT RESULTS\n'
+      f'NUMBER OF MODELS: {len(data_refined.keys())}\n'
+      f'Mean rmse: {rmse_w/weights}')
