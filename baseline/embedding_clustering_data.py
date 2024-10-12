@@ -70,7 +70,7 @@ plt.xlabel('clusters')
 plt.ylabel('inertia')
 plt.show()
 
-clusters = [25, 50, 100]  # picked on the basis of the sludge curve
+clusters = [10, 15, 20]  # picked on the basis of the sludge curve
 
 for c in clusters:
     clustering = KMeans(n_clusters=c, random_state=1, init='k-means++', max_iter=500, n_init='auto')
@@ -78,19 +78,19 @@ for c in clusters:
     assignments = clustering.labels_
 
     for (i, j) in enumerate(out_dict.keys()):
-        out_dict[j][f'{c}'] = assignments[i]
+        out_dict[j][c] = assignments[i]
 
 # let's group them all
-assignments_dict = {'25': {}, '50': {}, '100': {}}
+assignments_dict = {10: {}, 15: {}, 20: {}}
 for c in clusters:
     for x in range(c):
-        assignments_dict[f'{c}'][x] = []
+        assignments_dict[c][x] = []
 
 for key in out_dict.keys():
-    assignments_dict['25'][out_dict[key]['25']].append(key)
-    assignments_dict['50'][out_dict[key]['50']].append(key)
-    assignments_dict['100'][out_dict[key]['100']].append(key)
+    assignments_dict[10][out_dict[key][10]].append(key)
+    assignments_dict[15][out_dict[key][15]].append(key)
+    assignments_dict[20][out_dict[key][20]].append(key)
 
-pickle.dump(out_dict, open(f'/home/mateusz/Desktop/Demand-Forecast/baseline/results/name_embeddings/emb_data.pkl', 'wb'))
-pickle.dump(assignments_dict, open(f'/home/mateusz/Desktop/Demand-Forecast/baseline/results/name_embeddings/emb_assignments.pkl', 'wb'))
+pickle.dump(out_dict, open(f'/home/mateusz/Desktop/Demand-Forecast/baseline/results/name_clustering/emb_data_10_15_20.pkl', 'wb'))
+pickle.dump(assignments_dict, open(f'/home/mateusz/Desktop/Demand-Forecast/baseline/results/name_clustering/emb_assignments_10_15_20.pkl', 'wb'))
 

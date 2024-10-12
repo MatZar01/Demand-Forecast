@@ -2,7 +2,7 @@ import numpy as np
 import pickle
 
 """
-CLUSTERING
+CLUSTERING 25/50/100
 """
 
 data_cluster = pickle.load(open('/home/mateusz/Desktop/Demand-Forecast/baseline/results/name_clustering/model_out_clustering.pkl', 'rb'))
@@ -22,6 +22,30 @@ print(f'CLUSTERING RESULTS\n'
       f'50 models: {mean_rmse_50}\n'
       f'100 models: {mean_rmse_100}\n\n')
 
+#%%
+import numpy as np
+import pickle
+
+"""
+CLUSTERING 10/15/20
+"""
+
+data_cluster = pickle.load(open('/home/mateusz/Desktop/Demand-Forecast/baseline/results/name_clustering/model_out_clustering_10_15_20.pkl', 'rb'))
+
+# 25 models
+rmses = data_cluster[10]
+mean_rmse_25 = np.mean(rmses)
+# 50 models
+rmses = data_cluster[15]
+mean_rmse_50 = np.mean(rmses)
+# 100 models
+rmses = data_cluster[20]
+mean_rmse_100 = np.mean(rmses)
+
+print(f'CLUSTERING RESULTS\n'
+      f'10 models: {mean_rmse_25}\n'
+      f'15 models: {mean_rmse_50}\n'
+      f'20 models: {mean_rmse_100}\n\n')
 #%%
 import pickle
 import numpy as np

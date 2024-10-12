@@ -49,7 +49,7 @@ for key in data_grouping.keys():
     goal_rmse = data_grouping[key]['rmse']
 
     train_data = MLP_dataset_cluster(path=DATA_PATH, train=True, lag=LAG, get_quant=QUANT, normalize=NORMALIZE,
-                                                 embedders=embedders, matches=matches)
+                                     embedders=embedders, matches=matches)
     val_data = MLP_dataset_cluster(path=DATA_PATH, train=False, lag=LAG, get_quant=QUANT, normalize=NORMALIZE,
                                    embedders=embedders, matches=matches)
 
