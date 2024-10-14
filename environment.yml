@@ -1,0 +1,5 @@
+name: Demand-Forecast
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9

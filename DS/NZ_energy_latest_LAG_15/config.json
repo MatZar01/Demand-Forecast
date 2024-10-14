@@ -1,0 +1,6 @@
+{
+    "data": "combined_data.csv",
+    "C2": "onehot_C0.pkl",
+    "C3": "onehot_C1.pkl",
+    "model": "mlp_model.pth"
+}

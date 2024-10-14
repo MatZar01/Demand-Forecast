@@ -37,7 +37,7 @@ class L_Net(L.LightningModule):
         self.error_train.append(loss.detach().cpu().numpy())
         return loss
 
-    def validation_step(self, batch):
+    def validation_step(self, batch, batch_idx):
         logits, loss = self.network_step(batch)
         self.error_test.append(loss.detach().cpu().numpy())
         return loss

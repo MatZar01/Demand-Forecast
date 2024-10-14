@@ -64,7 +64,7 @@ class MLP_emb(nn.Module):
 
 
 class MLP_emb_tl(nn.Module):
-    def __init__(self, input_dim: int, cat_2_size, cat_3_size, embedding_size):
+    def __init__(self, input_dim: int, cat_2_size, cat_3_size, embedding_size, lag: int = 1 ):
         super().__init__()
 
         self.cat_2_size = cat_2_size
@@ -74,7 +74,9 @@ class MLP_emb_tl(nn.Module):
         self.embedder_2 = nn.Embedding(self.cat_2_size, self.embed_dim)
         self.embedder_3 = nn.Embedding(self.cat_3_size, self.embed_dim)
 
-        input_dim = input_dim * 15
+        input_dim = input_dim * 2 * lag # for lag 1 with 8 x 2*10 input
+        # input_dim = input_dim * 2 # for lag 1 with 8 x 2*10 input
+        # input_dim = input_dim * 15 * 2 # for lag 15 with 8 x 15*10
 
         self.model = nn.Sequential(
             nn.Linear(input_dim, 512),
@@ -93,11 +95,24 @@ class MLP_emb_tl(nn.Module):
 
         self.clf = nn.Linear(64, 1)
 
+    def get_concat_embeddings(self, emb_2, emb_3, X):
+        embeddings_2 = self.embedder_2(emb_2)
+        embeddings_3 = self.embedder_3(emb_3)
+
+        # seq_inp = torch.concatenate([embeddings_2, embeddings_3, X], dim=2).reshape(X.shape[0], -1)
+        concat_embeddings = torch.cat([embeddings_2, embeddings_3, X], dim=2).reshape(X.shape[0], -1)
+        return concat_embeddings
+
+    def get_logits(self, concat_embeddings):
+        logits = self.model(concat_embeddings)
+        return logits
+
     def forward(self, emb_2, emb_3, X):
         embeddings_2 = self.embedder_2(emb_2)
         embeddings_3 = self.embedder_3(emb_3)
 
-        seq_inp = torch.concatenate([embeddings_2, embeddings_3, X], dim=2).reshape(X.shape[0], -1)
+        # seq_inp = torch.concatenate([embeddings_2, embeddings_3, X], dim=2).reshape(X.shape[0], -1)
+        seq_inp = torch.cat([embeddings_2, embeddings_3, X], dim=2).reshape(X.shape[0], -1)
 
         logits = self.model(seq_inp)
         logits = self.clf(logits)

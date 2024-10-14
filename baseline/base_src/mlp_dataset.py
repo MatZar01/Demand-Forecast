@@ -107,8 +107,9 @@ class MLP_dataset(Dataset):
 
 class MLP_dataset_emb(Dataset):
     def __init__(self, path: str, train: bool, lag: int, get_quant: bool = False, normalize: bool = True,
-                 embedders: dict = None, matches: np.ndarray = None):
+                 embedders: dict = None, matches: np.ndarray = None, data_split = None):
         self.path = path
+        self.data_split = data_split
         self.train = train
         self.lag = lag
         self.embedders = embedders
@@ -117,16 +118,16 @@ class MLP_dataset_emb(Dataset):
         self.cat_2_size = None
         self.cat_3_size = None
 
-        self.columns = [4, 5, 6, 7]
+        self.columns = [2,3,4,5,6,7,8,9,10,11]
 
         if self.embedders is not None:
             self.onehot_2 = pickle.load(open(embedders['C2']['onehot'], 'rb'))
             self.onehot_3 = pickle.load(open(embedders['C3']['onehot'], 'rb'))
 
-            self.columns = [2, 3, 4, 5, 6, 7]
+            self.columns = [0,1,2,3,4,5,6,7,8,9,10,11]
 
         self.get_quant = get_quant
-        if self.get_quant:
+        if self.get_quant: # if to add previous sales to input vector (This is for demand dataset), for energy, this is available as 6, 7
             self.columns.append(8)
 
         self.data = self.load_data()
@@ -139,7 +140,7 @@ class MLP_dataset_emb(Dataset):
         self.X_lag, self.y_lag = self.get_lagged_data(self.X, self.y, self.lag)
 
         sample_item = self.__getitem__(0)
-        self.input_shape = sample_item[0].shape[0]
+        self.input_shape = sample_item[2].shape[1]
 
     def encode_cats(self, batch):
         X, y = batch
@@ -154,7 +155,7 @@ class MLP_dataset_emb(Dataset):
         self.cat_3_size = len(self.onehot_3.categories_[0])
 
         X = X.reshape(self.lag, -1)
-        X = X[:, 2:]
+        X = X[:, 2:] # remove embedded columns from X
 
         return onehot_2, onehot_3, X, y
 
@@ -179,17 +180,20 @@ class MLP_dataset_emb(Dataset):
 
     def split_to_years(self, data):
         data = data.to_numpy()
-        years = np.array([int(x.split('/')[-1]) for x in data[:, 1]])
+        # years = np.array([int(x.split('/')[-1]) for x in data[:, 1]])
+        years = data[:, 3]
         years = years - np.min(years)
 
-        train_y1 = data[np.where(years == 0)]
-        train_y2 = data[np.where(years == 1)]
-        val = data[np.where(years == 2)]
-        train_all = np.vstack([train_y1, train_y2])
-        if self.train:
-            return train_all
-        else:
-            return val
+        y1 = data[np.where(years == 0.0)]
+        y2 = data[np.where(years == 1.0)]
+        y3 = data[np.where(years == 2.0)]
+        # train_all = np.vstack([train_y1, train_y2])
+        if self.data_split == 'train':
+            return y1
+        elif self.data_split == 'val':
+            return y2
+        elif self.data_split == 'test':
+            return y3
 
     def normalize_data(self, data):
         return (data - np.min(data)) / (np.max(data) - np.min(data))
@@ -198,8 +202,9 @@ class MLP_dataset_emb(Dataset):
         return self.X_lag.shape[0]
 
     def __getitem__(self, idx):
-        batch = self.X_lag[idx].astype(float), self.y_lag[idx].astype(float)
+        batch = self.X_lag[idx], self.y_lag[idx].astype(float)
         emb_2, emb_3, X, y = self.encode_cats(batch)
+        X = X.astype(float)
         if self.normalize:
             X = self.normalize_data(X)
         return torch.LongTensor(emb_2), torch.LongTensor(emb_3), torch.Tensor(X), torch.Tensor([y])
@@ -208,16 +213,17 @@ class MLP_dataset_emb(Dataset):
 def get_matches(path):
     data = pd.read_csv(path)
     data = data.to_numpy()
-    years = np.array([int(x.split('/')[-1]) for x in data[:, 1]])
+    # years = np.array([int(x.split('/')[-1]) for x in data[:, 1]])
+    years = data[:, 3]
     years = years - np.min(years)
 
-    train_y1 = data[np.where(years == 0)]
-    train_y2 = data[np.where(years == 1)]
+    train_y1 = data[np.where(years == 0.0)]
+    train_y2 = data[np.where(years == 1.0)]
     data_train = np.vstack([train_y1, train_y2])
 
     # get stores ids and sku ids
-    stores = np.unique(data_train[:, 2])
-    skus = np.unique(data_train[:, 3])
+    stores = np.unique(data[:, 0])
+    skus = np.unique(data[:, 1])
     # get cartesian product for store-sku
     c_prod = np.transpose([np.tile(stores, len(skus)), np.repeat(skus, len(stores))])
     # pick one pair for experiments
