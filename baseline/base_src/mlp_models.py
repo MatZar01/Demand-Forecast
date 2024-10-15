@@ -105,6 +105,22 @@ class MLP_emb_tl(nn.Module):
         return logits
 
 
+    def get_concat_embeddings(self, emb_2, emb_3, X):
+        embeddings_2 = self.embedder_2(emb_2)
+        embeddings_3 = self.embedder_3(emb_3)
+
+        # seq_inp = torch.concatenate([embeddings_2, embeddings_3, X], dim=2).reshape(X.shape[0], -1)
+        concat_embeddings = torch.cat([embeddings_2, embeddings_3, X], dim=2).reshape(X.shape[0], -1)
+        return concat_embeddings
+
+
+    def get_logits(self, concat_embeddings):
+        logits = self.model(concat_embeddings)
+        return logits
+
+
+
+
 class tl_model(nn.Module):
     def __init__(self):
         super().__init__()
