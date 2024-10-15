@@ -30,10 +30,10 @@ NORMALIZE = True
 MATCHES_ONLY = True
 
 DATA_PATH = '/home/mateusz/Desktop/Demand-Forecast/DS/demand-forecasting/train.csv'
-embedders = {'C2': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C2.pkl',
-                    'cat2vec': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/embedder_c2.pth'},
-             'C3': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C3.pkl',
-                    'cat2vec': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/embedder_c3.pth'}}
+embedders = {'C2': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C2.pkl'},
+             'C3': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C3.pkl'}}
+
+MODEL_PATH = '/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/transfer/mlp_model.pth'
 
 if not EMBED:
     embedders = None
@@ -43,7 +43,7 @@ SAVE_MODEL = False
 OUT_PATH = '/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/transfer'
 OUT_NAME = f'L_{LAG}_Q_{QUANT}_EM_{EMBED}_FT'
 
-base_model = torch.load('/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/transfer/mlp_model.pth')
+base_model = torch.load(MODEL_PATH)
 base_model.embedder_2.requires_grad_(False)
 base_model.embedder_3.requires_grad_(False)
 base_model.model.requires_grad_(False)

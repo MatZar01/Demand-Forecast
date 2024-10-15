@@ -14,8 +14,8 @@ nums = data_nums[25]
 rmse_25_w = 0
 rmse_25_nums = 0
 for i in range(len(rmses)):
-      rmse_25_w += rmses[i] * len(nums[i])
-      rmse_25_nums += len(nums[i])
+    rmse_25_w += rmses[i] * len(nums[i])
+    rmse_25_nums += len(nums[i])
 
 mean_rmse_25 = rmse_25_w/rmse_25_nums
 
@@ -25,8 +25,8 @@ nums = data_nums[50]
 rmse_50_w = 0
 rmse_50_nums = 0
 for i in range(len(rmses)):
-      rmse_50_w += rmses[i] * len(nums[i])
-      rmse_50_nums += len(nums[i])
+    rmse_50_w += rmses[i] * len(nums[i])
+    rmse_50_nums += len(nums[i])
 
 mean_rmse_50 = rmse_50_w/rmse_50_nums
 
@@ -36,8 +36,8 @@ nums = data_nums[100]
 rmse_100_w = 0
 rmse_100_nums = 0
 for i in range(len(rmses)):
-      rmse_100_w += rmses[i] * len(nums[i])
-      rmse_100_nums += len(nums[i])
+    rmse_100_w += rmses[i] * len(nums[i])
+    rmse_100_nums += len(nums[i])
 
 mean_rmse_100 = rmse_100_w/rmse_100_nums
 
@@ -63,8 +63,8 @@ nums = data_nums[10]
 rmse_10_w = 0
 rmse_10_nums = 0
 for i in range(len(rmses)):
-      rmse_10_w += rmses[i] * len(nums[i])
-      rmse_10_nums += len(nums[i])
+    rmse_10_w += rmses[i] * len(nums[i])
+    rmse_10_nums += len(nums[i])
 
 mean_rmse_10 = rmse_10_w/rmse_10_nums
 
@@ -74,8 +74,8 @@ nums = data_nums[15]
 rmse_15_w = 0
 rmse_15_nums = 0
 for i in range(len(rmses)):
-      rmse_15_w += rmses[i] * len(nums[i])
-      rmse_15_nums += len(nums[i])
+    rmse_15_w += rmses[i] * len(nums[i])
+    rmse_15_nums += len(nums[i])
 
 mean_rmse_15 = rmse_15_w/rmse_15_nums
 
@@ -85,8 +85,8 @@ nums = data_nums[20]
 rmse_20_w = 0
 rmse_20_nums = 0
 for i in range(len(rmses)):
-      rmse_20_w += rmses[i] * len(nums[i])
-      rmse_20_nums += len(nums[i])
+    rmse_20_w += rmses[i] * len(nums[i])
+    rmse_20_nums += len(nums[i])
 
 mean_rmse_20 = rmse_20_w/rmse_20_nums
 

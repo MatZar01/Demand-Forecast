@@ -117,13 +117,10 @@ class MLP_dataset_emb(Dataset):
         self.cat_2_size = None
         self.cat_3_size = None
 
-        self.columns = [4, 5, 6, 7]
+        self.onehot_2 = pickle.load(open(embedders['C2']['onehot'], 'rb'))
+        self.onehot_3 = pickle.load(open(embedders['C3']['onehot'], 'rb'))
 
-        if self.embedders is not None:
-            self.onehot_2 = pickle.load(open(embedders['C2']['onehot'], 'rb'))
-            self.onehot_3 = pickle.load(open(embedders['C3']['onehot'], 'rb'))
-
-            self.columns = [2, 3, 4, 5, 6, 7]
+        self.columns = [2, 3, 4, 5, 6, 7]
 
         self.get_quant = get_quant
         if self.get_quant:

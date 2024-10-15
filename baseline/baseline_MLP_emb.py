@@ -23,23 +23,19 @@ BATCH = 8
 LAG = 15
 WEIGHT_DECAY = 0.004
 LR = 0.001
-EPOCHS = 200
+EPOCHS = 10
 QUANT = True
-EMBED = True
 NORMALIZE = True
-MATCHES_ONLY = False
+MATCHES_ONLY = True
 
 DATA_PATH = '/home/mateusz/Desktop/Demand-Forecast/DS/demand-forecasting/train.csv'
 embedders = {'C2': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C2.pkl'},
              'C3': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C3.pkl'}}
 
-if not EMBED:
-    embedders = None
-
 
 OUT_PATH = '/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/transfer'
-OUT_NAME = f'L_{LAG}_Q_{QUANT}_EM_{EMBED}'
-SAVE_MODEL = True
+OUT_NAME = f'L_{LAG}_Q_{QUANT}'
+SAVE_MODEL = False
 
 out_dict = {}
 matches = get_matches(DATA_PATH)
@@ -66,7 +62,7 @@ for m in matches:
         optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY, amsgrad=False)
 
         # set trainer
-        light_model = L_Net(model=model, loss_fn=loss, optimizer=optimizer, out_path=OUT_PATH, save_model=SAVE_MODEL)
+        light_model = L_Net(model=model, loss_fn=loss, test_fn=loss, optimizer=optimizer, out_path=OUT_PATH, save_model=SAVE_MODEL)
         lightning_trainer = L.Trainer(accelerator=DEVICE, max_epochs=EPOCHS, limit_train_batches=1000, limit_val_batches=500,
                                       check_val_every_n_epoch=1, log_every_n_steps=20, enable_progress_bar=True)
 

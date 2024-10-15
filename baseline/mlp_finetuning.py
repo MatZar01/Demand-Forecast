@@ -1,6 +1,6 @@
 from base_src import MLP_dataset, MLP_dataset_emb
 from base_src import get_matches
-from base_src import MLP, MLP_emb
+from base_src import MLP_emb
 from base_src import L_Net
 import torch
 from torch.utils.data import DataLoader
@@ -18,6 +18,8 @@ class RMSELoss(torch.nn.Module):
         return torch.sqrt(self.mse(yhat, y))
 
 
+MODEL_PATH = '/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/embedding/mlp_model_v2.pth'
+
 DEVICE = 'cuda'
 BATCH = 8
 LAG = 15
@@ -30,10 +32,8 @@ NORMALIZE = True
 MATCHES_ONLY = True
 
 DATA_PATH = '/home/mateusz/Desktop/Demand-Forecast/DS/demand-forecasting/train.csv'
-embedders = {'C2': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C2.pkl',
-                    'cat2vec': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/embedder_c2.pth'},
-             'C3': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C3.pkl',
-                    'cat2vec': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/embedder_c3.pth'}}
+embedders = {'C2': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C2.pkl'},
+             'C3': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C3.pkl'}}
 
 if not EMBED:
     embedders = None
@@ -58,7 +58,7 @@ for m in matches:
         train_dataloader = DataLoader(train_data, batch_size=BATCH, shuffle=True, num_workers=15)
         val_dataloader = DataLoader(val_data, batch_size=BATCH, shuffle=True, num_workers=15)
 
-        model = torch.load('/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/embedding/mlp_model_v2.pth')
+        model = torch.load(MODEL_PATH)
 
         # set loss
         loss = RMSELoss()

@@ -33,6 +33,7 @@ embedders = {'C2': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_m
              'C3': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C3.pkl'}}
 
 MATCHES_PATH = '/home/mateusz/Desktop/Demand-Forecast/baseline/results/name_clustering/emb_assignments_10_15_20.pkl'
+
 assignments = pickle.load(open(MATCHES_PATH, 'rb'))
 
 SAVE_MODEL = False

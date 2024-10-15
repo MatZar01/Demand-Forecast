@@ -1,5 +1,5 @@
 from base_src import MLP_dataset_emb
-from base_src import MLP, MLP_emb, MLP_emb_tl
+from base_src import MLP_emb, MLP_emb_tl
 import torch
 from torch.utils.data import DataLoader
 from base_src import get_matches
@@ -10,22 +10,20 @@ from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 
 DEVICE = 'cuda'
-BATCH = 1
-LAG = 15
-QUANT = True
-EMBED = True
-NORMALIZE = True
-MATCHES_ONLY = False
 
 DATA_PATH = '/home/mateusz/Desktop/Demand-Forecast/DS/demand-forecasting/train.csv'
 matches = get_matches(DATA_PATH)
 
+MODEL_PATH = '/home/mateusz/Desktop/Demand-Forecast/inference_tests_models/mlp_model_for_tl.pth'
+
+OUT_DICT_PATH = f'/home/mateusz/Desktop/Demand-Forecast/baseline/results/name_clustering/emb_data_10_15_20.pkl'
+ASSIGNMENT_PATH = f'/home/mateusz/Desktop/Demand-Forecast/baseline/results/name_clustering/emb_assignments_10_15_20.pkl'
 
 embedders = {'C2': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C2.pkl'},
              'C3': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C3.pkl'}}
 
 
-model = torch.load('/home/mateusz/Desktop/Demand-Forecast/inference_tests_models/mlp_model_for_tl.pth')
+model = torch.load(MODEL_PATH)
 
 onehot_2 = pickle.load(open(embedders['C2']['onehot'], 'rb'))
 onehot_3 = pickle.load(open(embedders['C3']['onehot'], 'rb'))
@@ -91,6 +89,6 @@ for key in out_dict.keys():
     assignments_dict[15][out_dict[key][15]].append(key)
     assignments_dict[20][out_dict[key][20]].append(key)
 
-pickle.dump(out_dict, open(f'/home/mateusz/Desktop/Demand-Forecast/baseline/results/name_clustering/emb_data_10_15_20.pkl', 'wb'))
-pickle.dump(assignments_dict, open(f'/home/mateusz/Desktop/Demand-Forecast/baseline/results/name_clustering/emb_assignments_10_15_20.pkl', 'wb'))
+pickle.dump(out_dict, open(OUT_DICT_PATH, 'wb'))
+pickle.dump(assignments_dict, open(ASSIGNMENT_PATH, 'wb'))
 
