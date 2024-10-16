@@ -36,7 +36,7 @@ at this point.
 ### Obtaining one-hot labels from the dataset
 
 To get one-hot labels, run `make_onehots.py` from `/baseline` directory. It runs _Dataloader_ form `name_embedding.py` 
-that is obsolete now, and there is no need to use it anymore. Obtained one-hot embedders are valid for all the rest of
+that is obsolete now, and there is no need to use it anymore, so use `make_onehots.py` instead. Obtained one-hot embedders are valid for all the rest of
 scripts in the repository.
 
 - `DATA_PATH` should point to the dataset training `.csv` file.
