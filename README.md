@@ -46,7 +46,7 @@ scripts in the repository.
 
 Baseline MLP experiments are run with `baseline_MLP_emb.py` from `/baseline` directory. 
 
-In `embedders` dict, you have to provide paths for .pkl files with previously obtained onehot-embeddings.
+In `embedders` dict, you have to provide paths for `.pkl` files with previously obtained onehot-embeddings.
 
 Notable Parameters:
 
