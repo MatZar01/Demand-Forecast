@@ -68,7 +68,7 @@ Two base models (found in `baseline/base_src/mlp_models.py`) can be trained with
 every model covers only one pair. Those models **WILL NOT** be finetuned or transfer learned, so there is no need for 
 saving them locally.
 2. **To pre-train and save a single model that can later be finetuned** (or transfer learned in case of TL model used) -
-this should be the only case where you'd like to save the model for later.
+this should be the only case when you'd like to save the model for later.
 
 ### Running MLP finetuning (BP MLP)
 
