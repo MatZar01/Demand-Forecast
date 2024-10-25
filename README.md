@@ -36,7 +36,7 @@ at this point.
 ### Obtaining one-hot labels from the dataset
 
 To get one-hot labels, run `make_onehots.py` from `/baseline` directory. It runs _Dataloader_ form `name_embedding.py` 
-that is obsolete now, and there is no need to use it anymore. Obtained one-hot embedders are valid for all the rest of
+that is obsolete now, and there is no need to use it anymore, so use `make_onehots.py` instead. Obtained one-hot embedders are valid for all the rest of
 scripts in the repository.
 
 - `DATA_PATH` should point to the dataset training `.csv` file.
@@ -46,7 +46,7 @@ scripts in the repository.
 
 Baseline MLP experiments are run with `baseline_MLP_emb.py` from `/baseline` directory. 
 
-In `embedders` dict, you have to provide paths for .pkl files with previously obtained onehot-embeddings.
+In `embedders` dict, you have to provide paths for `.pkl` files with previously obtained onehot-embeddings.
 
 Notable Parameters:
 
@@ -68,7 +68,7 @@ Two base models (found in `baseline/base_src/mlp_models.py`) can be trained with
 every model covers only one pair. Those models **WILL NOT** be finetuned or transfer learned, so there is no need for 
 saving them locally.
 2. **To pre-train and save a single model that can later be finetuned** (or transfer learned in case of TL model used) -
-this should be the only case where you'd like to save the model for later.
+this should be the only case when you'd like to save the model for later.
 
 ### Running MLP finetuning (BP MLP)
 
