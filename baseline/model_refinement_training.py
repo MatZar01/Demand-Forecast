@@ -1,6 +1,6 @@
 import pickle
 from base_src import MLP_dataset, MLP_dataset_emb, MLP_dataset_cluster
-from base_src import MLP, MLP_emb, tl_model, MLP_emb_tl, Conv_1D, MLP_emb_pool
+from base_src import MLP_emb, tl_model, MLP_emb_tl, Conv_1D, MLP_emb_pool
 from base_src import L_Net, L_Net_TL
 import torch
 from torch.utils.data import DataLoader

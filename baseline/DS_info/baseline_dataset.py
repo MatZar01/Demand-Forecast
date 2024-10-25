@@ -1,114 +1,69 @@
+#%%
 import numpy as np
-import torch
-from src import get_args
-
-CFG_FILE = '../cfgs/default.yml'
-task_info = get_args(CFG_FILE)
-#%%
-from src import DataSet
-Data_manager = DataSet(paths=task_info['DATA_PATH'])
-data_train = Data_manager.train[:, 1:]
-data_val = Data_manager.val[:, 1:]
-#%%
-weeks = Data_manager.data_merged[:, 1]
-store_ids = Data_manager.data_merged[:, 2]
-sku_ids = Data_manager.data_merged[:, 3]
-unq_weeks = np.unique(weeks, return_counts=True)
-unq_store_ids = np.unique(store_ids, return_counts=True)
-unq_sku_ids = np.unique(sku_ids, return_counts=True)
-#%%
-d_unsh = Data_manager.data_unshuffled
-week_data = {'11': np.zeros((13, 32)), '12': np.zeros((13, 32)), '13': np.zeros((13, 32))}
-for row in d_unsh:
-    week_data[row[1][-2:]][int(row[1].split('/')[1])][int(row[1].split('/')[0])] += row[-1]
-#%%
-s = np.sum(week_data['11']) + np.sum(week_data['12']) + np.sum(week_data['13'])
-monthly = {'11': np.sum(week_data['11'], axis=1)[1:],
-           '12': np.sum(week_data['12'], axis=1)[1:],
-           '13': np.sum(week_data['13'], axis=1)[1:]}
-monthly['13'] = np.where(monthly['13'] == 0, np.nan, monthly['13'])
-#%%
 import matplotlib.pyplot as plt
-mts = list(range(1, 13))
-plt.plot(mts, monthly['11'], label='yr 1')
-plt.plot(mts, monthly['12'], label='yr 2')
-plt.plot(mts, monthly['13'], label='yr3')
-plt.title('Monthly units sold')
-plt.legend()
-plt.grid()
+import pandas as pd
+
+data = np.loadtxt('/home/mateusz/Desktop/Demand-Forecast/DS/demand-forecasting/train.csv', skiprows=1, delimiter=',', dtype=str)
+dates = data[:, 1]
+data = data[:, 2:].astype(float)
+
+uniques = np.unique(data[:, 1])
+
+outs = []
+out_dates = []
+
+for num in uniques:
+    match = np.where(data[:, 1]==num)
+    sales = data[:, -1][match]
+    date = dates[match]
+    d_out = []
+    for d in date:
+        d_out.append(np.datetime64(f'{int(d.split("/")[-1])+2000}-{d.split("/")[1]}-{d.split("/")[0]}'))
+    d_out = np.array(d_out)
+
+    out_dates.append(d_out)
+    outs.append(sales)
+
+out_by_month = []
+for i in range(len(outs)):
+    df = pd.DataFrame({'dates': out_dates[i], 'sales': outs[i]})
+
+    df['dates'] = pd.to_datetime(df['dates'])
+
+    df.set_index('dates', inplace=True)
+
+    monthly_sales = df.resample('ME').sum()
+    monthly_sales = monthly_sales['sales'].to_numpy()
+
+    out_by_month.append(monthly_sales)
+
+#%%
+plt.figure(figsize=(8,5))
+plt.plot(np.array(out_by_month).T, label=uniques.astype(int), alpha=0.8)
+plt.yscale('log')
+plt.grid(True)
+plt.xlabel('Time [months]', fontsize=14)
+plt.ylabel('Units sold [log scale]', fontsize=14)
+plt.title('Units sold monthly by vendor', fontsize=18)
+plt.axvline(x=24, color='r', linestyle='--', linewidth=2)
+
+ax = plt.axes([0.4, 0.13, 0.3, 0.08])
+ax.set_xticks([])
+ax.set_yticks([])
+ax.set_facecolor((1, 1, 1, 0.5))
+text_box = ax.text(0.5, 0.0, "Each line color represents\n one of 28 unique vendors", ha='center', va='bottom', fontsize=13)
+
+ax2 = plt.axes([0.125, 0.88, 0.65, 0.04])
+ax2.set_xticks([])
+ax2.set_yticks([])
+ax2.set_facecolor((1, 1, 1, 0.5))
+text_box2 = ax2.text(0.5, 0.0, "Training data", ha='center', va='bottom', fontsize=13)
+
+ax2 = plt.axes([0.795, 0.88, 0.19, 0.04])
+ax2.set_xticks([])
+ax2.set_yticks([])
+ax2.set_facecolor((1, 1, 1, 0.5))
+text_box2 = ax2.text(0.5, 0.0, "Evaluation data", ha='center', va='bottom', fontsize=13)
+
+plt.tight_layout(pad=0.5)
 plt.show()
-#%%
-items = [x[3] for x in d_unsh]
-items = list(set(items))
-item_week = {}
-for item in items:
-    item_week[item] = np.zeros((3, 13, 32))
-
-for row in d_unsh:
-    year = int(row[1].split('/')[2]) - 11
-    item_week[row[3]][year][int(row[1].split('/')[1])][int(row[1].split('/')[0])] += row[-1]
-#%%
-for key in item_week.keys():
-    item_week[key] = np.sum(item_week[key], axis=2)[:, 1:]
-
-#%%
-fig, axs = plt.subplots(3, 1, constrained_layout=True, figsize=(7, 10))
-
-for key in item_week.keys():
-    axs[0].plot(mts, item_week[key][0, :])
-    axs[1].plot(mts, item_week[key][1, :])
-    axs[2].plot(mts, item_week[key][2, :])
-
-fig.suptitle('Monthly item sold')
-axs[0].set_title('yr 1')
-axs[1].set_title('yr 2')
-axs[2].set_title('yr 3')
-axs[0].set_yscale('log')
-axs[1].set_yscale('log')
-axs[2].set_yscale('log')
-plt.grid()
-plt.show()
-#%%
-item_total = {}
-for item in items:
-    item_total[item] = 0
-for key in item_week.keys():
-    item_total[key] = np.sum(item_week[key])
-print(item_total)
-#%%
-x = [str(x) for x in list(item_total.keys())]
-y = list(item_total.values())
-plt.bar(x, y)
-plt.xticks(rotation=45)
-plt.show()
-#%%
-stores = [x[2] for x in d_unsh]
-stores = list(set(stores))
-store_week = {}
-for store in stores:
-    store_week[store] = np.zeros((3, 13, 32))
-
-for row in d_unsh:
-    year = int(row[1].split('/')[2]) - 11
-    store_week[row[2]][year][int(row[1].split('/')[1])][int(row[1].split('/')[0])] += row[-1]
-
-for key in store_week.keys():
-    store_week[key] = np.sum(store_week[key], axis=2)[:, 1:]
-#%%
-fig, axs = plt.subplots(3, 1, constrained_layout=True, figsize=(7, 10))
-
-for key in store_week.keys():
-    axs[0].plot(mts, store_week[key][0, :])
-    axs[1].plot(mts, store_week[key][1, :])
-    axs[2].plot(mts, store_week[key][2, :])
-
-fig.suptitle('Monthly item sold - store')
-axs[0].set_title('yr 1')
-axs[1].set_title('yr 2')
-axs[2].set_title('yr 3')
-axs[0].set_yscale('log')
-axs[1].set_yscale('log')
-axs[2].set_yscale('log')
-plt.grid()
-plt.show()
-#%%
