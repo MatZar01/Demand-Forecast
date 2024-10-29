@@ -22,7 +22,7 @@ class RMSELoss(torch.nn.Module):
 # DEVICE = 'cuda'
 DEVICE = 'cpu'
 BATCH = 8
-LAG = 15
+LAG = 0
 WEIGHT_DECAY = 0.004
 LR = 0.001
 EPOCHS = 200
@@ -32,7 +32,7 @@ NORMALIZE = True
 MATCHES_ONLY = False
 
 # DATA_PATH = '../DS/demand-forecasting/train.csv'
-OUT_PATH = '../DS/NZ_energy_latest_LAG_15_residual'
+OUT_PATH = '../DS/NZ_energy_latest_LAG_0'
 DATA_PATH = OUT_PATH + '/combined_data.csv'
 embedders = {'C2': {'onehot': OUT_PATH + '/onehot_C0.pkl'},
              'C3': {'onehot': OUT_PATH + '/onehot_C1.pkl'}}

@@ -74,7 +74,7 @@ class MLP_emb_tl(nn.Module):
         self.embedder_2 = nn.Embedding(self.cat_2_size, self.embed_dim)
         self.embedder_3 = nn.Embedding(self.cat_3_size, self.embed_dim)
 
-        input_dim = input_dim * 2 * lag # for lag 1 with 8 x 2*10 input
+        input_dim = input_dim * 2 * max (lag, 1) # for lag 1 with 8 x 2*10 input
         # input_dim = input_dim * 2 # for lag 1 with 8 x 2*10 input
         # input_dim = input_dim * 15 * 2 # for lag 15 with 8 x 15*10
 

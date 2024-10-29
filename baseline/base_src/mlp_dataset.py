@@ -154,7 +154,7 @@ class MLP_dataset_emb(Dataset):
         self.cat_2_size = len(self.onehot_2.categories_[0])
         self.cat_3_size = len(self.onehot_3.categories_[0])
 
-        X = X.reshape(self.lag, -1)
+        X = X.reshape(max(self.lag, 1), -1)
         X = X[:, 2:] # remove embedded columns from X
 
         return onehot_2, onehot_3, X, y
@@ -171,8 +171,12 @@ class MLP_dataset_emb(Dataset):
         X_lagged = []
         y_lagged = []
         for i in range(X.shape[0] - (lag - 1) - 1):
-            X_lagged.append(X[i:i + lag, :])
-            y_lagged.append(y[i + lag])
+            if lag > 0:
+                X_lagged.append(X[i:i + lag, :])
+                y_lagged.append(y[i + lag])
+            elif lag==0:
+                X_lagged.append(X[i, :])
+                y_lagged.append(y[i])
         return np.array(X_lagged).reshape(len(X_lagged), -1), np.array(y_lagged)
 
     def load_data(self):

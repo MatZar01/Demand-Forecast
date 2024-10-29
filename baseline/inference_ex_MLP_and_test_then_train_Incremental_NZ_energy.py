@@ -30,7 +30,7 @@ import argparse
 # Create the parser
 parser = argparse.ArgumentParser()
 # Add a string argument
-parser.add_argument('-d','--dir', type=str, help="file", default='../DS/NZ_energy_latest_LAG_15_residual')
+parser.add_argument('-d','--dir', type=str, help="file", default='../DS/NZ_energy_latest_LAG_0')
 # Parse the arguments
 args = parser.parse_args()
 
@@ -100,7 +100,7 @@ with open(os.path.join(args.dir, 'config.json') , 'r') as file:
 # DEVICE = 'cuda'  # can be set to 'cpu', in this script it won't matter anyhow
 DEVICE = 'cpu'  # can be set to 'cpu', in this script it won't matter anyhow
 BATCH = 1  # batch is set to 1 just for convenience
-LAG = 15  # how many samples are in the series -- it depends on the model architecture, so 15 it is
+LAG = 0  # how many samples are in the series -- it depends on the model architecture, so 15 it is
 # LAG = 1  # how many samples are in the series -- it depends on the model architecture, so 15 it is
 # QUANT = True  # if to add previous sales to input vector
 QUANT = False  # if to add previous sales to input vector. This ia already available in NZ Energy
