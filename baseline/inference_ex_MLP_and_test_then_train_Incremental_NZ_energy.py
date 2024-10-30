@@ -145,7 +145,8 @@ incremental_learners = {}
 
 for k,v in inc_learners.items():
     for inc_type in inc_types:
-        incremental_learners[f'{k} ( {inc_type} )'] = {
+        incremental_learners[f'{inc_type}'] = {
+        # incremental_learners[f'{k} ( {inc_type} )'] = {
             'model': None,
             'model_f': v[0],
             'model_f_para': v[1],
@@ -240,9 +241,9 @@ def train_incremental_and_predict(model, dataloader, evaluator, predict=False):
                         inc_model['y_hat'].append(inc_model['last_prediction'])
             else:  # feature vector is None
                 if predict:
-                    for l, inc_model in incremental_learners.items():
-                        inc_model['feature_vec_none_at'].append(i)
-                        inc_model['y_hat'].append(inc_model['last_prediction'])
+                    # for l, inc_model in incremental_learners.items():
+                    inc_model['feature_vec_none_at'].append(i)
+                    inc_model['y_hat'].append(inc_model['last_prediction'])
             if predict:
                 # Update evaluators
                 if inc_model['evaluator'] is None:
