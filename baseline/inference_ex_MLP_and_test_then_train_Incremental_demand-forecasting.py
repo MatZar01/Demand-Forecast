@@ -30,7 +30,7 @@ import argparse
 # Create the parser
 parser = argparse.ArgumentParser()
 # Add a string argument
-parser.add_argument('-d','--dir', type=str, help="file", default='../DS/demand-forecasting_LAG_15')
+parser.add_argument('-d','--dir', type=str, help="file", default='../DS/demand-forecasting_LAG_0')
 # Parse the arguments
 args = parser.parse_args()
 
@@ -100,10 +100,10 @@ with open(os.path.join(args.dir, 'config.json') , 'r') as file:
 # DEVICE = 'cuda'  # can be set to 'cpu', in this script it won't matter anyhow
 DEVICE = 'cpu'  # can be set to 'cpu', in this script it won't matter anyhow
 BATCH = 1  # batch is set to 1 just for convenience
-LAG = 15  # how many samples are in the series -- it depends on the model architecture, so 15 it is
+LAG = 0  # how many samples are in the series -- it depends on the model architecture, so 15 it is
 # LAG = 1  # how many samples are in the series -- it depends on the model architecture, so 15 it is
-QUANT = True  # if to add previous sales to input vector
-# QUANT = False  # if to add previous sales to input vector
+# QUANT = None # for NZ energy
+QUANT = 8 # previous target feature, for demand forcasting
 EMBED = True  # if to use embedding (onehot embedding to int for cat2vec embedder)
 NORMALIZE = True  # if to normalize the rest of input vector
 MATCHES_ONLY = False  # if to only select single SKU-Store match from dataloader - affects m = None
@@ -145,7 +145,8 @@ incremental_learners = {}
 
 for k,v in inc_learners.items():
     for inc_type in inc_types:
-        incremental_learners[f'{k} ( {inc_type} )'] = {
+        incremental_learners[f'{inc_type}'] = {
+        # incremental_learners[f'{k} ( {inc_type} )'] = {
             'model': None,
             'model_f': v[0],
             'model_f_para': v[1],
@@ -240,9 +241,9 @@ def train_incremental_and_predict(model, dataloader, evaluator, predict=False):
                         inc_model['y_hat'].append(inc_model['last_prediction'])
             else:  # feature vector is None
                 if predict:
-                    for l, inc_model in incremental_learners.items():
-                        inc_model['feature_vec_none_at'].append(i)
-                        inc_model['y_hat'].append(inc_model['last_prediction'])
+                    # for l, inc_model in incremental_learners.items():
+                    inc_model['feature_vec_none_at'].append(i)
+                    inc_model['y_hat'].append(inc_model['last_prediction'])
             if predict:
                 # Update evaluators
                 if inc_model['evaluator'] is None:
@@ -277,8 +278,8 @@ if __name__ == '__main__':
 
     # test then train incremental learner with train data
     # train option does not have an effect
-    train_data = MLP_dataset_emb(path=DATA_PATH, train=True, lag=LAG, get_quant=QUANT, normalize=NORMALIZE,
-                               embedders=embedders, matches=m)
+    train_data = MLP_dataset_emb(path=DATA_PATH, train=True, lag=LAG, quant_feature=QUANT, normalize=NORMALIZE,
+                               embedders=embedders, matches=m, data_split='train', columns=[2, 3, 4, 5, 6, 7])
     train_dataloader = DataLoader(train_data, batch_size=BATCH, shuffle=RANDOM_TRAIN_INC, num_workers=0)
     _ = train_incremental_and_predict(pre_trained_model, train_dataloader,None, predict=False)
 
@@ -289,8 +290,8 @@ if __name__ == '__main__':
     # _ = train_incremental_and_predict(pre_trained_model, val_dataloader, None, predict=False)
 
     # test then train incremental learner with test data
-    test_data = MLP_dataset_emb(path=DATA_PATH, train=False, lag=LAG, get_quant=QUANT, normalize=NORMALIZE,
-                               embedders=embedders, matches=m)
+    test_data = MLP_dataset_emb(path=DATA_PATH, train=False, lag=LAG, quant_feature=QUANT, normalize=NORMALIZE,
+                               embedders=embedders, matches=m, data_split='val', columns=[2, 3, 4, 5, 6, 7])
     test_dataloader = DataLoader(test_data, batch_size=BATCH, shuffle=False, num_workers=0)
     true_value = []
     y_hat = []

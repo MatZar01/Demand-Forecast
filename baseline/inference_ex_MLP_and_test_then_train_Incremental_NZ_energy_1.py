@@ -30,7 +30,7 @@ import argparse
 # Create the parser
 parser = argparse.ArgumentParser()
 # Add a string argument
-parser.add_argument('-d','--dir', type=str, help="file", default='../DS/NZ_energy_latest_LAG_0')
+parser.add_argument('-d','--dir', type=str, help="file", default='../DS/NZ_energy_latest_LAG_0_1')
 # Parse the arguments
 args = parser.parse_args()
 
@@ -128,12 +128,12 @@ embedders = {'C2': {'onehot': f"{os.path.join(args.dir, config['C2'])}"},
 
 
 inc_types = [
-    # 'X',
-    # 'q',
-    # 'z',
-    'F_batch(X) + F_inc(X)',
-    'F_batch(X) + F_inc(q)',
-    'F_batch(X) + F_inc(z)'
+    'X',
+    'q',
+    'z',
+    # 'F_batch(X) + F_inc(X)',
+    # 'F_batch(X) + F_inc(q)',
+    # 'F_batch(X) + F_inc(z)'
 ]
 
 inc_learners = {

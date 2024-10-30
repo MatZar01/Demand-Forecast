@@ -11,7 +11,7 @@ from joblib.externals.cloudpickle import instance
 # from sklearn.metrics import mean_squared_error
 
 from base_src import MLP_dataset_emb
-from base_src import MLP, MLP_emb, MLP_emb_tl
+
 import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -30,7 +30,7 @@ import argparse
 # Create the parser
 parser = argparse.ArgumentParser()
 # Add a string argument
-parser.add_argument('-d','--dir', type=str, help="file", default='../DS/NZ_energy_latest_LAG_0')
+parser.add_argument('-d','--dir', type=str, help="file", default='../DS/demand-forecasting_LAG_0_1')
 # Parse the arguments
 args = parser.parse_args()
 
@@ -102,8 +102,8 @@ DEVICE = 'cpu'  # can be set to 'cpu', in this script it won't matter anyhow
 BATCH = 1  # batch is set to 1 just for convenience
 LAG = 0  # how many samples are in the series -- it depends on the model architecture, so 15 it is
 # LAG = 1  # how many samples are in the series -- it depends on the model architecture, so 15 it is
-QUANT = None # for NZ energy
-# QUANT = 8 # previous target feature, for demand forcasting
+# QUANT = None # for NZ energy
+QUANT = 8 # previous target feature, for demand forcasting
 EMBED = True  # if to use embedding (onehot embedding to int for cat2vec embedder)
 NORMALIZE = True  # if to normalize the rest of input vector
 MATCHES_ONLY = False  # if to only select single SKU-Store match from dataloader - affects m = None
@@ -128,12 +128,12 @@ embedders = {'C2': {'onehot': f"{os.path.join(args.dir, config['C2'])}"},
 
 
 inc_types = [
-    # 'X',
-    # 'q',
-    # 'z',
-    'F_batch(X) + F_inc(X)',
-    'F_batch(X) + F_inc(q)',
-    'F_batch(X) + F_inc(z)'
+    'X',
+    'q',
+    'z',
+    # 'F_batch(X) + F_inc(X)',
+    # 'F_batch(X) + F_inc(q)',
+    # 'F_batch(X) + F_inc(z)'
 ]
 
 inc_learners = {
@@ -278,20 +278,20 @@ if __name__ == '__main__':
 
     # test then train incremental learner with train data
     # train option does not have an effect
-    train_data = MLP_dataset_emb(path=DATA_PATH, train=False, lag=LAG, quant_feature=QUANT, normalize=NORMALIZE,
-                               embedders=embedders, matches=m, data_split='train', columns=[0,1,2,3,4,5,6,7,8,9,10,11], dataset='NZ energy')
+    train_data = MLP_dataset_emb(path=DATA_PATH, train=True, lag=LAG, quant_feature=QUANT, normalize=NORMALIZE,
+                               embedders=embedders, matches=m, data_split='train', columns=[2, 3, 4, 5, 6, 7])
     train_dataloader = DataLoader(train_data, batch_size=BATCH, shuffle=RANDOM_TRAIN_INC, num_workers=0)
     _ = train_incremental_and_predict(pre_trained_model, train_dataloader,None, predict=False)
 
     # test then train incremental learner with val data
-    val_data = MLP_dataset_emb(path=DATA_PATH, train=False, lag=LAG, quant_feature=QUANT, normalize=NORMALIZE,
-                               embedders=embedders, matches=m, data_split='val', columns=[0,1,2,3,4,5,6,7,8,9,10,11], dataset='NZ energy')
-    val_dataloader = DataLoader(val_data, batch_size=BATCH, shuffle=RANDOM_TRAIN_INC, num_workers=0)
-    _ = train_incremental_and_predict(pre_trained_model, val_dataloader, None, predict=False)
+    # val_data = MLP_dataset_emb(path=DATA_PATH, train=False, lag=LAG, get_quant=QUANT, normalize=NORMALIZE,
+    #                            embedders=embedders, matches=m)
+    # val_dataloader = DataLoader(val_data, batch_size=BATCH, shuffle=RANDOM_TRAIN_INC, num_workers=0)
+    # _ = train_incremental_and_predict(pre_trained_model, val_dataloader, None, predict=False)
 
     # test then train incremental learner with test data
     test_data = MLP_dataset_emb(path=DATA_PATH, train=False, lag=LAG, quant_feature=QUANT, normalize=NORMALIZE,
-                               embedders=embedders, matches=m, data_split='test', columns=[0,1,2,3,4,5,6,7,8,9,10,11], dataset='NZ energy')
+                               embedders=embedders, matches=m, data_split='val', columns=[2, 3, 4, 5, 6, 7])
     test_dataloader = DataLoader(test_data, batch_size=BATCH, shuffle=False, num_workers=0)
     true_value = []
     y_hat = []

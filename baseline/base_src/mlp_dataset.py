@@ -106,8 +106,8 @@ class MLP_dataset(Dataset):
 
 
 class MLP_dataset_emb(Dataset):
-    def __init__(self, path: str, train: bool, lag: int, get_quant: bool = False, normalize: bool = True,
-                 embedders: dict = None, matches: np.ndarray = None, data_split = None):
+    def __init__(self, path: str, train: bool, lag: int, quant_feature: int = None, normalize: bool = True,
+                 embedders: dict = None, matches: np.ndarray = None, data_split = None, columns: list = None, dataset: str = None):
         self.path = path
         self.data_split = data_split
         self.train = train
@@ -118,17 +118,18 @@ class MLP_dataset_emb(Dataset):
         self.cat_2_size = None
         self.cat_3_size = None
 
-        self.columns = [2,3,4,5,6,7,8,9,10,11]
+        self.columns = columns
+        self.dataset = dataset
+
 
         if self.embedders is not None:
             self.onehot_2 = pickle.load(open(embedders['C2']['onehot'], 'rb'))
             self.onehot_3 = pickle.load(open(embedders['C3']['onehot'], 'rb'))
 
-            self.columns = [0,1,2,3,4,5,6,7,8,9,10,11]
 
-        self.get_quant = get_quant
-        if self.get_quant: # if to add previous sales to input vector (This is for demand dataset), for energy, this is available as 6, 7
-            self.columns.append(8)
+        self.quant_feature = quant_feature
+        if self.quant_feature is not None: # if to add previous sales to input vector (This is for demand dataset), for energy, this is available as 6, 7
+            self.columns.append(self.quant_feature)
 
         self.data = self.load_data()
         self.data_all = self.split_to_years(self.data)
@@ -184,8 +185,10 @@ class MLP_dataset_emb(Dataset):
 
     def split_to_years(self, data):
         data = data.to_numpy()
-        # years = np.array([int(x.split('/')[-1]) for x in data[:, 1]])
-        years = data[:, 3]
+        if self.dataset == 'NZ energy':
+            years = data[:, 3]  # only for NZ energy
+        else:
+            years = np.array([int(x.split('/')[-1]) for x in data[:, 1]])  # only for demand
         years = years - np.min(years)
 
         y1 = data[np.where(years == 0.0)]
