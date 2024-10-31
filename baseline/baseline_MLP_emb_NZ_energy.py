@@ -9,6 +9,22 @@ import numpy as np
 import pickle
 import traceback
 
+import os
+import json
+import argparse
+
+# Create the parser
+parser = argparse.ArgumentParser()
+# Add a string argument
+parser.add_argument('-d','--dir', type=str, help="file", default='../DS/NZ_energy_latest_LAG_0/')
+# Parse the arguments
+args = parser.parse_args()
+
+# Reading config from JSON file
+config = None
+with open(os.path.join(args.dir, 'config.json') , 'r') as file:
+    config = json.load(file)
+
 
 class RMSELoss(torch.nn.Module):
     def __init__(self):
@@ -32,12 +48,10 @@ EMBED = True
 NORMALIZE = True
 MATCHES_ONLY = False
 
-# DATA_PATH = '../DS/demand-forecasting/train.csv'
-OUT_PATH = '../DS/NZ_energy_latest_LAG_0/'
-DATA_PATH = OUT_PATH + '/combined_data.csv'
-# DATA_PATH = OUT_PATH + '/train.csv'
-embedders = {'C2': {'onehot': OUT_PATH + '/onehot_C2.pkl'},
-             'C3': {'onehot': OUT_PATH + '/onehot_C3.pkl'}}
+OUT_PATH = args.dir
+DATA_PATH = f"{os.path.join(args.dir, config['data'])}"
+embedders = {'C2': {'onehot': f"{os.path.join(args.dir, config['C2'])}"},
+             'C3': {'onehot': f"{os.path.join(args.dir, config['C3'])}"}}
 
 if not EMBED:
     embedders = None

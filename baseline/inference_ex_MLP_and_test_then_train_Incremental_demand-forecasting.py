@@ -115,13 +115,8 @@ INC_TRAIN_WITH_EMBEDDINGS = True
 if not MATCHES_ONLY:
     m = None
 
-# select train .csv from dataset (in test .csv there are no labels)
-# DATA_PATH = '../DS/demand-forecasting/train.csv'
-DATA_PATH = f"{os.path.join(args.dir, config['data'])}"
 
-# embedders are only used for onehot-to-int encoding for cat2vec -- they are saved to omit confusion between models
-# embedders = {'C2': {'onehot': '../embedding_models/onehot_C2.pkl'},
-#              'C3': {'onehot': '../embedding_models/onehot_C3.pkl'}}
+DATA_PATH = f"{os.path.join(args.dir, config['data'])}"
 
 embedders = {'C2': {'onehot': f"{os.path.join(args.dir, config['C2'])}"},
              'C3': {'onehot': f"{os.path.join(args.dir, config['C3'])}"}}
@@ -278,20 +273,20 @@ if __name__ == '__main__':
 
     # test then train incremental learner with train data
     # train option does not have an effect
-    train_data = MLP_dataset_emb(path=DATA_PATH, train=True, lag=LAG, quant_feature=QUANT, normalize=NORMALIZE,
+    train_data = MLP_dataset_emb(path=DATA_PATH, train=False, lag=LAG, quant_feature=QUANT, normalize=NORMALIZE,
                                embedders=embedders, matches=m, data_split='train', columns=[2, 3, 4, 5, 6, 7])
     train_dataloader = DataLoader(train_data, batch_size=BATCH, shuffle=RANDOM_TRAIN_INC, num_workers=0)
     _ = train_incremental_and_predict(pre_trained_model, train_dataloader,None, predict=False)
 
     # test then train incremental learner with val data
-    # val_data = MLP_dataset_emb(path=DATA_PATH, train=False, lag=LAG, get_quant=QUANT, normalize=NORMALIZE,
-    #                            embedders=embedders, matches=m)
-    # val_dataloader = DataLoader(val_data, batch_size=BATCH, shuffle=RANDOM_TRAIN_INC, num_workers=0)
-    # _ = train_incremental_and_predict(pre_trained_model, val_dataloader, None, predict=False)
+    val_data = MLP_dataset_emb(path=DATA_PATH, train=False, lag=LAG, quant_feature=QUANT, normalize=NORMALIZE,
+                               embedders=embedders, matches=m, data_split='val', columns=[2, 3, 4, 5, 6, 7])
+    val_dataloader = DataLoader(val_data, batch_size=BATCH, shuffle=RANDOM_TRAIN_INC, num_workers=0)
+    _ = train_incremental_and_predict(pre_trained_model, val_dataloader, None, predict=False)
 
     # test then train incremental learner with test data
     test_data = MLP_dataset_emb(path=DATA_PATH, train=False, lag=LAG, quant_feature=QUANT, normalize=NORMALIZE,
-                               embedders=embedders, matches=m, data_split='val', columns=[2, 3, 4, 5, 6, 7])
+                               embedders=embedders, matches=m, data_split='test', columns=[2, 3, 4, 5, 6, 7])
     test_dataloader = DataLoader(test_data, batch_size=BATCH, shuffle=False, num_workers=0)
     true_value = []
     y_hat = []

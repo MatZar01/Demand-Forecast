@@ -115,13 +115,8 @@ INC_TRAIN_WITH_EMBEDDINGS = True
 if not MATCHES_ONLY:
     m = None
 
-# select train .csv from dataset (in test .csv there are no labels)
-# DATA_PATH = '../DS/demand-forecasting/train.csv'
-DATA_PATH = f"{os.path.join(args.dir, config['data'])}"
 
-# embedders are only used for onehot-to-int encoding for cat2vec -- they are saved to omit confusion between models
-# embedders = {'C2': {'onehot': '../embedding_models/onehot_C2.pkl'},
-#              'C3': {'onehot': '../embedding_models/onehot_C3.pkl'}}
+DATA_PATH = f"{os.path.join(args.dir, config['data'])}"
 
 embedders = {'C2': {'onehot': f"{os.path.join(args.dir, config['C2'])}"},
              'C3': {'onehot': f"{os.path.join(args.dir, config['C3'])}"}}
