@@ -92,6 +92,7 @@ def compute_tumbling_windows(data_frame, window_size):
 parser = argparse.ArgumentParser()
 # Add a string argument
 parser.add_argument('-d','--dir', type=str, help="file", default='./')
+parser.add_argument('-D', '--detect_drift', action='store_true', help="Detect Drift")
 # Parse the arguments
 args = parser.parse_args()
 
@@ -103,6 +104,7 @@ with open(os.path.join(args.dir, 'config.json') , 'r') as file:
 with open(os.path.join(args.dir, 'results.pkl'), 'rb') as f:
     results = pickle.load(f)
 
+DETECT_DRIFTS = args.detect_drift
 
 WINDOW_SIZE = results['WINDOW_SIZE']
 WINDOW_SIZE = 500
@@ -122,53 +124,44 @@ initial_stream = DummyDriftStream(y_hat, true_value)
 
 mse = torch.nn.MSELoss()
 # detector = ADWIN(delta=1.0E-2)
-detector = ADWIN(1.0E-4)
-detection_index = []
-
-for i in range(len(true_value)):
-    # cumulative_evaluator.update(true_value[i], y_hat[i])
-    # error = cumulative_evaluator.rmse()
-    with torch.no_grad():
-        error = mse(torch.tensor(y_hat[i]), torch.tensor(true_value[i])).item()
-    if i > 0:
-        previous_error_estimation = detector.getEstimation()
-    # detector.add_element(error)
-    detector.setInput(error)
-    if detector.getChange():
-        if i > 0:
-            current_error_estimation = detector.getEstimation()
-            if current_error_estimation > previous_error_estimation:
-                print(f'Change detected at index: {i}, and error going UP ({current_error_estimation} > {previous_error_estimation}). add index n: {detector.getWidth()}, var: {math.sqrt(detector.getVariance())}')
-                detection_index.append(i)
-            else:
-                print(f'Change detected at index: {i}, and error going DOWN.')
-        # cumulative_evaluator = RegressionEvaluator(schema=initial_stream.get_schema())
-
-# detection_index = detector.detection_index
-print(f'Total number of detections: {len(detection_index)}')
+ADWIN_delta = 1.0E-4
+detector = ADWIN(ADWIN_delta)
 
 detection_index = None
+if DETECT_DRIFTS:
+    detection_index = []
+    for i in range(len(true_value)):
+        # cumulative_evaluator.update(true_value[i], y_hat[i])
+        # error = cumulative_evaluator.rmse()
+        with torch.no_grad():
+            error = mse(torch.tensor(y_hat[i]), torch.tensor(true_value[i])).item()
+        if i > 0:
+            previous_error_estimation = detector.getEstimation()
+        # detector.add_element(error)
+        detector.setInput(error)
+        if detector.getChange():
+            if i > 0:
+                current_error_estimation = detector.getEstimation()
+                if current_error_estimation > previous_error_estimation:
+                    print(f'Change detected at index: {i}, and error going UP ({current_error_estimation} > {previous_error_estimation}). add index n: {detector.getWidth()}, var: {math.sqrt(detector.getVariance())}')
+                    detection_index.append(i)
+                else:
+                    print(f'Change detected at index: {i}, and error going DOWN.')
+            # cumulative_evaluator = RegressionEvaluator(schema=initial_stream.get_schema())
+
+    # detection_index = detector.detection_index
+    print(f'Total number of detections: {len(detection_index)}')
+
 initial_stream = DummyDriftStream(y_hat, true_value, drift_indexes=detection_index)
 
 
 
 learners = {}
-# learners_map = {
-#     '( Xn )': ['X', False],
-#     '( E(Xc) + Xn )': ['q', False],
-#     '( mlp( E(Xc) + Xn) )': ['z', False],
-#     '( Xn, y - NN(X) )': ['X', True],
-#     '( E(Xc) + Xn,  y - NN(X) )': ['q', True],
-#     '( mlp( E(Xc) + Xn),  y - NN(X) )': ['z', True],
-# }
+inc_learner = ['X', 'q', 'z']
 
 for l_name, l in incremental_learners.items():
     ll = DummyClassifier(schema=initial_stream.get_schema(), dataset=l['y_hat'])
-    # old_part = str(l_name).replace('SOKNL ', '')
-    # new_x = learners_map[old_part][0]
-    # residual = learners_map[old_part][1]
-    # new_name = ('F_batch(X) + 'if residual else '') + f'SOKNL({new_x})'
-    learners[l_name] = ll
+    learners[f'F_inc({l_name})' if l_name in inc_learner else l_name] = ll
 
 learners['F_batch(X)'] = DummyClassifier(schema=initial_stream.get_schema(), dataset=y_hat)
 
@@ -182,8 +175,10 @@ for learner_id in learners.keys():
 final_results_p = list(final_results.values())
 plot_windowed_results(*final_results_p,
                       metric="rmse",
-                      plot_aggregated=False, plot_title= f'RMSE (tumbling window size is {WINDOW_SIZE} for periodic)',
-                      figure_name='RMSE'
+                      ylabel='RMSE',
+                      plot_aggregated=False,
+                      plot_title= f'RMSE (tumbling window size is {WINDOW_SIZE} for periodic).' + (f'ADWIN delta: {ADWIN_delta:.2e}' if DETECT_DRIFTS else ''),
+                      figure_name='RMSE' + ('_DD'if DETECT_DRIFTS else '')
                       )
 
 best_r2 = 0.0
@@ -200,8 +195,10 @@ for learner_id in learners.keys():
 final_results_p = list(final_results.values())
 plot_windowed_results(*final_results_p,
                       metric="r2",
-                      plot_aggregated=False, plot_title= f'R2 (tumbling window size is {WINDOW_SIZE} for periodic)',
-                      figure_name='R2'
+                      ylabel='R2',
+                      plot_aggregated=False,
+                      plot_title= f'R2 (tumbling window size is {WINDOW_SIZE} for periodic)' + (f'ADWIN delta: {ADWIN_delta:.2e}' if DETECT_DRIFTS else ''),
+                      figure_name='R2' + ('_DD'if DETECT_DRIFTS else '')
                       )
 
 final_results_g = [v for k, v in final_results.items() if k in ['F_batch(X)', best_inc_learner] ]
