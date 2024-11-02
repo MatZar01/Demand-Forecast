@@ -1,6 +1,0 @@
-{
-    "data": "train.csv",
-    "C2": "onehot_C2.pkl",
-    "C3": "onehot_C3.pkl",
-    "model": "mlp_model.pth"
-}
