@@ -1,0 +1,7 @@
+{
+    "data": "../demand-forecasting_LAG_0/sorted_shifted_train.csv",
+    "C2": "../demand-forecasting_LAG_0/onehot_C2.pkl",
+    "C3": "../demand-forecasting_LAG_0/onehot_C3.pkl",
+    "model": "../demand-forecasting_LAG_0/mlp_model.pth",
+    "random_seed": 5
+}

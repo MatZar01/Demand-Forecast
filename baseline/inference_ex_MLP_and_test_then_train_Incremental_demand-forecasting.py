@@ -123,9 +123,9 @@ embedders = {'C2': {'onehot': f"{os.path.join(args.dir, config['C2'])}"},
 
 
 inc_types = [
-    # 'X',
-    # 'q',
-    # 'z',
+    'X',
+    'q',
+    'z',
     'F_batch(X) + F_inc(X)',
     'F_batch(X) + F_inc(q)',
     'F_batch(X) + F_inc(z)'
@@ -133,7 +133,7 @@ inc_types = [
 
 inc_learners = {
     # 'SGBR': [SGBR, {'base_learner': 'meta.OzaBag -s 10 -l (trees.FIMTDD -s VarianceReductionSplitCriterion -g 50 -c 0.01 -e)', 'boosting_iterations': 10}],
-    'SOKNL': [SOKNL, {}],
+    'SOKNL': [SOKNL, {'random_seed': config['random_seed']}],
     # 'ARFR': [AdaptiveRandomForestRegressor, {}]
 }
 incremental_learners = {}
