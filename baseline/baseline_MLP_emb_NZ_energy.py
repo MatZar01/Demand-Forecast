@@ -72,9 +72,9 @@ if __name__ == '__main__':
     for m in matches:
         try:
             train_data = MLP_dataset_emb(path=DATA_PATH, train=True, lag=LAG, quant_feature=QUANT, normalize=NORMALIZE,
-                                         embedders=embedders, matches=m, data_split='train', columns=[0,1,2,3,4,5,6,7,8,9,10,11])
+                                         embedders=embedders, matches=m, data_split='train', columns=[0,1,2,3,4,5,6,7,8,9,10,11], dataset='NZ energy')
             val_data = MLP_dataset_emb(path=DATA_PATH, train=False, lag=LAG, quant_feature=QUANT, normalize=NORMALIZE,
-                                        embedders=embedders, matches=m, data_split='val', columns=[0,1,2,3,4,5,6,7,8,9,10,11])
+                                        embedders=embedders, matches=m, data_split='val', columns=[0,1,2,3,4,5,6,7,8,9,10,11], dataset='NZ energy')
 
             train_dataloader = DataLoader(train_data, batch_size=BATCH, shuffle=True, num_workers=1)
             val_dataloader = DataLoader(val_data, batch_size=BATCH, shuffle=True, num_workers=1)

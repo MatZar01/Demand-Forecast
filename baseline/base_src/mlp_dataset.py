@@ -196,9 +196,9 @@ class MLP_dataset_emb(Dataset):
         y3 = data[np.where(years == 2.0)]
         # train_all = np.vstack([train_y1, train_y2])
         if self.data_split == 'train':
-            return y1
+            return y2 if self.dataset == 'NZ energy' else y1
         elif self.data_split == 'val':
-            return y2
+            return y1 if self.dataset == 'NZ energy' else y2
         elif self.data_split == 'test':
             return y3
 
