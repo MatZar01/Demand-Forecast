@@ -1,0 +1,7 @@
+{
+    "data": "../NZ_energy_latest_LAG_0/combined_data.csv",
+    "C2": "../NZ_energy_latest_LAG_0/onehot_C0.pkl",
+    "C3": "../NZ_energy_latest_LAG_0/onehot_C1.pkl",
+    "model": "../NZ_energy_latest_LAG_0/mlp_model.pth",
+    "random_seed": 1
+}
