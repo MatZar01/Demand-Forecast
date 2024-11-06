@@ -18,7 +18,6 @@ from capymoa.stream import NumpyStream, Schema
 from capymoa.evaluation import prequential_evaluation_multiple_learners, RegressionEvaluator
 from capymoa.evaluation.visualization import plot_windowed_results, plot_predictions_vs_ground_truth
 from capymoa.stream.drift import DriftStream, Drift
-# from capymoa.drift.detectors import ADWIN
 
 from moa.classifiers.core.driftdetection import ADWIN
 
@@ -42,12 +41,6 @@ class DummyClassifier(Regressor):
 
 class DummyDriftStream(DriftStream):
     def __init__(self,
-                 # concept_list: list,
-                 # max_recurrences_per_concept: int = 3,
-                 # transition_type_template: Drift = AbruptDrift(position=5000),
-                 # concept_name_list: list = None,
-                 # moa_stream = None,
-                 # CLI: str = None,
                  X_dummy,
                  y_dummy,
                  drift_indexes = None,
@@ -63,7 +56,6 @@ class DummyDriftStream(DriftStream):
                 # concept_info is not None and
                 drifts is not None):
             super().__init__(schema=self._initial_stream.get_schema(), drifts=drifts)
-            # self.concept_info = concept_info
 
     def has_more_instances(self):
         return self._initial_stream.has_more_instances()
@@ -82,45 +74,29 @@ class DummyDriftStream(DriftStream):
 
 
 
-# Function to create tumbling windows
-def compute_tumbling_windows(data_frame, window_size):
-    # Reshape data into non-overlapping windows
-    windows = np.array_split(data_frame, np.arange(window_size, len(data_frame), window_size))
-    return windows
-
 # Create the parser
 parser = argparse.ArgumentParser()
 # Add a string argument
 parser.add_argument('-d','--dir', type=str, help="file", default='./')
+parser.add_argument('-R', '--results_per_seed', action='store_true', help="Read results per seed")
 parser.add_argument('-D', '--detect_drift', action='store_true', help="Detect Drift")
 # Parse the arguments
 args = parser.parse_args()
 
-
-with open(os.path.join(args.dir, 'config.json') , 'r') as file:
-    config = json.load(file)
-
-
-with open(os.path.join(args.dir, 'results.pkl'), 'rb') as f:
-    results = pickle.load(f)
+if args.results_per_seed:
+    with open(os.path.join(args.dir, 'all_seed_results.pkl'), 'rb') as f:
+        results = pickle.load(f)
+else:
+    with open(os.path.join(args.dir, 'results.pkl'), 'rb') as f:
+        results = pickle.load(f)
 
 DETECT_DRIFTS = args.detect_drift
 
-WINDOW_SIZE = results['WINDOW_SIZE']
 WINDOW_SIZE = 500
-# drift_detectors = results['drift_detectors']
-incremental_learners = results['incremental_learners']
 true_value = results['true_value']
 y_hat = results['y_hat']
-y_hat_none_at = results['y_hat_none_at']
-# 'y_hat_nan_at': np.where(np.isnan(np.array(y_hat)))[0],
-y_hat_nan_at = results['y_hat_nan_at']
-idxs = results['idxs']
-RANDOM_TRAIN_INC = results['RANDOM_TRAIN_INC']
-evaluator_results = results['evaluator_results']
 
 initial_stream = DummyDriftStream(y_hat, true_value)
-# cumulative_evaluator = RegressionEvaluator(schema=initial_stream.get_schema())
 
 mse = torch.nn.MSELoss()
 # detector = ADWIN(delta=1.0E-2)
@@ -159,9 +135,16 @@ initial_stream = DummyDriftStream(y_hat, true_value, drift_indexes=detection_ind
 learners = {}
 inc_learner = ['X', 'q', 'z']
 
-for l_name, l in incremental_learners.items():
-    ll = DummyClassifier(schema=initial_stream.get_schema(), dataset=l['y_hat'])
-    learners[f'F_inc({l_name})' if l_name in inc_learner else l_name] = ll
+if args.results_per_seed:
+    for incremental_learners in results['incremental_learners_per_seed']:
+        for l_name, l in incremental_learners.items():
+            ll = DummyClassifier(schema=initial_stream.get_schema(), dataset=l['y_hat'])
+            learners[f'F_inc({l_name})' if l_name in inc_learner else l_name] = ll
+else:
+    incremental_learners = results['incremental_learners']
+    for l_name, l in incremental_learners.items():
+        ll = DummyClassifier(schema=initial_stream.get_schema(), dataset=l['y_hat'])
+        learners[f'F_inc({l_name})' if l_name in inc_learner else l_name] = ll
 
 learners['F_batch(X)'] = DummyClassifier(schema=initial_stream.get_schema(), dataset=y_hat)
 
