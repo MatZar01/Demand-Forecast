@@ -3,8 +3,9 @@
 import os
 import pickle
 
-base_dir = '/Users/ng98/Desktop/CODE/Demand-Forecast/DS/demand-forecasting_LAG_0'
-seeds = [1, 2, 3, 4, 5]
+base_dir = '~/CODE/Demand-Forecast/DS/NZ_energy_latest_LAG_0'
+# seeds = [1, 2, 3, 4, 5]
+seeds = [1, 2]
 
 results = None
 for r in seeds:
