@@ -3,5 +3,7 @@
     "C2": "onehot_C2.pkl",
     "C3": "onehot_C3.pkl",
     "model": "mlp_model.pth",
-    "random_seed": 1
+    "random_seed": 1,
+    "WINDOW_SIZE": 500,
+    "ADWIN_delta": 1.0E-4
 }
