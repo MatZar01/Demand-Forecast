@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import OrdinalEncoder
 
 
 class DataSet:
@@ -137,7 +138,8 @@ class DataSet_2:
 
 
 class DataSet_3:
-    def __init__(self, paths, year_split: bool = True, train_split: float = None):
+    def __init__(self, paths, year_split: bool = True, train_split: float = None, encode=False):
+        self.encode = encode
         self.path_train = paths['TRAIN']
         self.path_test = paths['TEST']
         self.name = self.path_train.split('/')[-2]
@@ -158,7 +160,20 @@ class DataSet_3:
         try:
             df_train = pd.read_csv(self.path_train)
             df_train = df_train.drop(df_train.loc[df_train.isnull().any(axis=1)].index)
+
+            if self.encode:
+                wh_encoder = OrdinalEncoder()
+                whs = df_train.Warehouse.to_numpy()
+                whs_enc = wh_encoder.fit_transform(whs.reshape(-1, 1))
+                df_train.Warehouse = whs_enc.astype(int)
+
+                prod_encoder = OrdinalEncoder()
+                prods = df_train.Product_Category.to_numpy()
+                prods_enc = prod_encoder.fit_transform(prods.reshape(-1, 1))
+                df_train.Product_Category = prods_enc.astype(int)
+
             self.header = [*df_train]
+
         except FileNotFoundError:
             df_train = None
 
