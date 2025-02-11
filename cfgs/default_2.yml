@@ -1,0 +1,3 @@
+DATA_PATH:
+  TRAIN: /home/mateusz/Desktop/Demand-Forecast/DS/demand-forecasting-kernels-only/train.csv
+  TEST: /home/mateusz/Desktop/Demand-Forecast/DS/demand-forecasting-kernels-only/test.csv
