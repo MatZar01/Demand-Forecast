@@ -1,12 +1,13 @@
 from base_src import MLP_dataset_emb
 from base_src import get_matches
-from base_src import MLP, MLP_emb, MLP_emb_tl
+from base_src import MLP_emb, MLP_emb_tl
 from base_src import L_Net
 import torch
 from torch.utils.data import DataLoader
 import lightning as L
 import numpy as np
 import pickle
+from torchmetrics import MeanSquaredLogError
 
 
 class RMSELoss(torch.nn.Module):
@@ -28,7 +29,7 @@ QUANT = True
 NORMALIZE = True
 MATCHES_ONLY = True
 
-DATA_PATH = '/home/mateusz/Desktop/Demand-Forecast/DS/demand-forecasting/train.csv'
+DATA_PATH = '/home/mateusz/Desktop/Demand-Forecast/DS/demand-forecasting-kernels-only/train.csv'
 embedders = {'C2': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C2.pkl'},
              'C3': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C3.pkl'}}
 
@@ -56,7 +57,7 @@ for m in matches:
         model = MLP_emb_tl(input_dim=train_data.input_shape, cat_2_size=train_data.cat_2_size, cat_3_size=train_data.cat_3_size, embedding_size=5)
 
         # set loss
-        loss = RMSELoss()
+        loss = MeanSquaredLogError()
 
         # set optimizer
         optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY, amsgrad=False)
@@ -76,4 +77,4 @@ for m in matches:
         out_dict[f'{m[0]}_{m[1]}'] = {'rmse_train': np.nan, 'rmse_test': np.nan}
         print(f'[INFO] {m} -- no data!')
 
-pickle.dump(out_dict, open(f'{OUT_PATH}/{OUT_NAME}.pkl', 'wb'))
+pickle.dump(out_dict, open(f'{OUT_PATH}/{OUT_NAME}_2.pkl', 'wb'))

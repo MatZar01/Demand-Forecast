@@ -1,6 +1,6 @@
 import numpy as np
 from torch.utils.data import DataLoader
-from .mlp_dataset import MLP_dataset_cluster
+from .mlp_dataset import MLP_dataset_emb_cluster_2
 from tqdm import tqdm
 
 
@@ -24,7 +24,7 @@ class MatchBank:
 
         for m in tqdm(self.matches_left):
             try:
-                val_data = MLP_dataset_cluster(path='/home/mateusz/Desktop/Demand-Forecast/DS/demand-forecasting/train.csv',
+                val_data = MLP_dataset_emb_cluster_2(path='/home/mateusz/Desktop/Demand-Forecast/DS/demand-forecasting-kernels-only/train.csv',
                                                train=False, lag=15, get_quant=True, normalize=True,
                                                embedders=self.embedders, matches=np.array([m]))
             except ValueError:

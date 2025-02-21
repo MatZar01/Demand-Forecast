@@ -7,13 +7,13 @@ data = np.loadtxt('/home/mateusz/Desktop/Demand-Forecast/DS/demand-forecasting/t
 dates = data[:, 1]
 data = data[:, 2:].astype(float)
 
-uniques = np.unique(data[:, 1])
+uniques = np.unique(data[:, 0])
 
 outs = []
 out_dates = []
 
 for num in uniques:
-    match = np.where(data[:, 1]==num)
+    match = np.where(data[:, 0]==num)
     sales = data[:, -1][match]
     date = dates[match]
     d_out = []
@@ -44,14 +44,14 @@ plt.yscale('log')
 plt.grid(True)
 plt.xlabel('Time [months]', fontsize=14)
 plt.ylabel('Units sold [log scale]', fontsize=14)
-plt.title('Units sold monthly by vendor', fontsize=18)
+plt.title('Units sold monthly by SKU', fontsize=18)
 plt.axvline(x=24, color='r', linestyle='--', linewidth=2)
 
 ax = plt.axes([0.4, 0.13, 0.3, 0.08])
 ax.set_xticks([])
 ax.set_yticks([])
 ax.set_facecolor((1, 1, 1, 0.5))
-text_box = ax.text(0.5, 0.0, "Each line color represents\n one of 28 unique vendors", ha='center', va='bottom', fontsize=13)
+text_box = ax.text(0.5, 0.0, "Each line color represents\n one of 76 unique SKUs", ha='center', va='bottom', fontsize=13)
 
 ax2 = plt.axes([0.125, 0.88, 0.65, 0.04])
 ax2.set_xticks([])
@@ -67,3 +67,5 @@ text_box2 = ax2.text(0.5, 0.0, "Evaluation data", ha='center', va='bottom', font
 
 plt.tight_layout(pad=0.5)
 plt.show()
+#%%
+vars = [np.std(s) for s in outs]

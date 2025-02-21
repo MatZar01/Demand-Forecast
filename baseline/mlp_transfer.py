@@ -1,6 +1,6 @@
 from base_src import MLP_dataset, MLP_dataset_emb
 from base_src import get_matches
-from base_src import MLP, MLP_emb, tl_model
+from base_src import MLP_emb, tl_model
 from base_src import L_Net, L_Net_TL
 import torch
 from torch.utils.data import DataLoader

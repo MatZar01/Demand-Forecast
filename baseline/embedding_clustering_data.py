@@ -11,13 +11,13 @@ import matplotlib.pyplot as plt
 
 DEVICE = 'cuda'
 
-DATA_PATH = '/home/mateusz/Desktop/Demand-Forecast/DS/demand-forecasting/train.csv'
+DATA_PATH = '/home/mateusz/Desktop/Demand-Forecast/DS/demand-forecasting-kernels-only/test.csv'
 matches = get_matches(DATA_PATH)
 
-MODEL_PATH = '/home/mateusz/Desktop/Demand-Forecast/inference_tests_models/mlp_model_for_tl.pth'
+MODEL_PATH = '/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/transfer/mlp_model_2.pth'
 
-OUT_DICT_PATH = f'/home/mateusz/Desktop/Demand-Forecast/baseline/results/name_clustering/emb_data_10_15_20.pkl'
-ASSIGNMENT_PATH = f'/home/mateusz/Desktop/Demand-Forecast/baseline/results/name_clustering/emb_assignments_10_15_20.pkl'
+OUT_DICT_PATH = f'/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/transfer/emb_data_2.pkl'
+ASSIGNMENT_PATH = f'/home/mateusz/Desktop/Demand-Forecast/baseline/results_mlp/transfer/emb_assignments_2.pkl'
 
 embedders = {'C2': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C2.pkl'},
              'C3': {'onehot': '/home/mateusz/Desktop/Demand-Forecast/embedding_models/onehot_C3.pkl'}}

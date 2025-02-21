@@ -39,6 +39,9 @@ ax.set_ylabel('Store id')
 plt.title('RMSE for store-sku match')
 plt.tight_layout()
 plt.show()
+print(f'MEAN RMSE: {np.nanmean(out_matrix)}')
+print(f'MAX: {np.nanmax(out_matrix)}')
+print(f'MIN: {np.nanmin(out_matrix)}')
 #%%
 # get 5 best rms scores
 successful = np.where([x.size > 12 for x in gts])[0]

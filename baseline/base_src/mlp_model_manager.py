@@ -14,4 +14,4 @@ class ModelManager:
             self.last_low_error = error
             if self.save:
                 model = copy.deepcopy(model)
-                torch.save(model.cpu(), f'{self.out_path}/mlp_model.pth')
+                torch.save(model.cpu(), f'{self.out_path}/mlp_model_3.pth')
